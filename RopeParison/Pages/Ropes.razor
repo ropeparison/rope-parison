@@ -1,0 +1,185 @@
+﻿@page "/ropes"
+@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using System.Linq
+@using Syncfusion.Blazor.Grids
+
+
+<div id="wrapper" class="maincontent">
+
+    <SfSidebar class="default-sidebar" Width="250px" Target=".maincontent" CloseOnDocumentClick="@sidebarCloseOnDocumentClick" ShowBackdrop="false" Type="sidebarType" @bind-IsOpen="sidebarOpen">
+        <!--SidebarToggle-->
+        <ChildContent>
+
+            <div class="title-header">
+                <div class="inline-element"> Options </div>
+                <SfButton CssClass="right e-flat e-round" @onclick="@CloseSidebar" IconCss="fa-solid fa-xmark"></SfButton>
+            </div>
+
+            <div>
+
+            </div>
+
+        </ChildContent>
+    </SfSidebar>
+
+    <div>
+        <div>
+            <h3 class="inline-element">Rope List</h3>
+            <SfButton IsToggle="true" @onclick="AdvancedOptionsToggle" CssClass="right e-flat" IsPrimary="true" Content="@advancedOptionsToggleContent"></SfButton>
+            <SfButton IsToggle="true" @onclick="SidebarToggle" CssClass="right e-flat" IsPrimary="true" Content="@sidebarToggleContent"></SfButton>
+            
+        </div>
+
+        <div>
+            @if (ropes != null)
+            {
+                <SfGrid DataSource="@ropes"
+                    ShowColumnChooser="@gridShowColumnChooser" Toolbar="@( new List<string>() { "ColumnChooser" } )"
+                    AllowFiltering="gridAllowFiltering"
+                    AllowPaging="true">
+
+                    <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Excel"></GridFilterSettings>
+                    <GridPageSettings PageCount="5"></GridPageSettings>
+
+                    <GridColumns>
+                        <!--<GridColumn Field="@nameof(RopeDto.RopeId)" HeaderText="Rope ID" Visible="false" />-->
+                        <GridColumn Field="Name" HeaderText="Name" Visible="true" />
+                        <GridColumn Field="Brand.Name" HeaderText="Brand" Visible="true" />
+                        <GridColumn Field="Category.DisplayName" HeaderText="Category" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.Diameter)" HeaderText="Diameter" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.MassPerUnitLength)" HeaderText="Weight" Format="##0.##" Visible="true" />
+                        <GridColumn Field="RopeCalculatedParameterSet.Area" HeaderText="Area" Format="##0.##" Visible="false" />
+                        <GridColumn Field="@nameof(RopeDto.SheathPercentage)" HeaderText="Sheath Percentage" Visible="true" />
+                        <GridColumn Field="RopeCalculatedParameterSet.SheathArea" HeaderText="Sheath Area" Format="##0.##" Visible="false" />
+                        <GridColumn Field="RopeCalculatedParameterSet.SheathThickness" HeaderText="Sheath Thickness" Format="##0.##" Visible="false" />
+                        <GridColumn Field="RopeCalculatedParameterSet.CoreArea" HeaderText="Core Area" Format="##0.##" Visible="false" />
+                        <GridColumn Field="RopeCalculatedParameterSet.CoreDiameter" HeaderText="Core Diameter" Format="##0.##" Visible="false" />
+                        <GridColumn Field="@nameof(RopeDto.ImpactForce55kgOneStrand)" HeaderText="Impact Force (55kg, 1 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.ImpactForce80kgOneStrand)" HeaderText="Impact Force (80kg, 1 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.ImpactForce80kgTwoStrand)" HeaderText="Impact Force (80kg, 2 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.StaticElongation80kgOneStrand)" HeaderText="Static Elongation (80kg, 1 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.StaticElongation80kgTwoStrand)" HeaderText="Static Elongation (80kg, 2 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.DynamicElongation55kgOneStrand)" HeaderText="Dynamic Elongation (55kg, 1 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.DynamicElongation80kgOneStrand)" HeaderText="Dynamic Elongation (80kg, 1 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.DynamicElongation80kgTwoStrand)" HeaderText="Dynamic Elongation (80kg, 2 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak55kgOneStrand)" HeaderText="Drops Before Break (55kg, 1 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak80kgOneStrand)" HeaderText="Drops Before Break (80kg, 1 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak80kgTwoStrand)" HeaderText="Drops Before Break (80kg, 2 Strand)" Format="##0.##" Visible="true" />
+                        <GridColumn Field="@nameof(RopeDto.SheathSlippage)" HeaderText="Sheath Slippage" Visible="false" />
+                        <!-- Add additional grid columns here for the remaining parameters -->
+                    </GridColumns>
+                </SfGrid>
+            }
+        </div>
+    </div>
+
+
+</div>
+
+@code {
+    [Inject]
+    private IRopeService ropeService { get; set; }
+
+    bool isSmall = false; //mobile
+
+    private List<RopeDto> ropes;
+
+    bool sidebarOpen = false;
+    bool sidebarCloseOnDocumentClick = false;
+    SidebarType sidebarType = SidebarType.Auto;
+
+    private static readonly string SHOW_OPTIONS = "Show Options";
+    private static readonly string HIDE_OPTIONS = "Hide Options";
+    private static readonly string OPTIONS = "Options";
+    private string showOptions;
+    private string hideOptions;
+    private string sidebarToggleContent = OPTIONS;
+
+    private static readonly string SHOW_ADVANCED_OPTIONS = "Show Advanced Options";
+    private static readonly string HIDE_ADVANCED_OPTIONS = "Hide Advanced Options";
+    private string advancedOptionsToggleContent = SHOW_ADVANCED_OPTIONS;
+    private bool showAdvancedOptions = false;
+    private bool gridShowColumnChooser = false;
+    private bool gridAllowFiltering = false;
+
+
+
+    protected override void OnInitialized()
+    {
+        SetSidebarSettings();
+        ropes = ropeService.GetAllRopes();
+    }
+
+    private void SetSidebarSettings()
+    {
+        if (isSmall)
+        {
+            sidebarOpen = false;
+            sidebarCloseOnDocumentClick = true;
+            sidebarType = SidebarType.Over;
+            showOptions = OPTIONS;
+            hideOptions = OPTIONS;
+        }
+        else
+        {
+            sidebarOpen = true;
+            sidebarCloseOnDocumentClick = false;
+            sidebarType = SidebarType.Push;
+            showOptions = SHOW_OPTIONS;
+            hideOptions = HIDE_OPTIONS;
+        }
+    }
+
+    private void SidebarToggle()
+    {
+        if (sidebarOpen)
+        {
+            sidebarOpen = false;
+            sidebarToggleContent = showOptions;
+        }
+        else
+        {
+            sidebarOpen = true;
+            sidebarToggleContent = hideOptions;
+        }
+    }
+
+    private void AdvancedOptionsToggle()
+    {
+        if (showAdvancedOptions)
+        {
+            showAdvancedOptions = false;
+            gridAllowFiltering = false;
+            gridShowColumnChooser = false;
+            advancedOptionsToggleContent = SHOW_ADVANCED_OPTIONS;
+        }
+        else
+        {
+            showAdvancedOptions = true;
+            gridAllowFiltering = true;
+            gridShowColumnChooser = true;
+            advancedOptionsToggleContent = HIDE_ADVANCED_OPTIONS;
+        }
+    }
+
+    public void CloseSidebar()
+    {
+        SidebarToggle();
+    }
+}
+
+<style>
+    .inline-element {
+        display: inline-block;
+    }
+
+    .title-header {
+        font-size: 18px;
+        padding-bottom: 15px;
+    }
+
+    .right {
+        float: right;
+    }
+</style>

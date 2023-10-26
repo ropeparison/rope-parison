@@ -1,0 +1,421 @@
+﻿@page "/addRope/{ropeId:int?}"
+@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using Syncfusion.Blazor.Buttons;
+@using Syncfusion.Blazor.DropDowns;
+@using Syncfusion.Blazor.Inputs;
+<!--@using Syncfusion.Blazor.Forms;-->
+
+<SfToast ID="toast_default" @ref="ToastObj" Title="@ToastTitle" Content="@ToastContent" Timeout="5000" ShowCloseButton="true">
+    <ToastPosition X="Right"></ToastPosition>
+</SfToast>
+
+<div id="wrapper" class="maincontent">
+
+    @if (edit)
+    {
+        <h3>Edit Rope</h3>
+    }
+    else
+    {
+        <h3>Add Rope</h3>
+    }
+
+    <EditForm Model="@rope" OnValidSubmit="AddRope" OnInvalidSubmit="FormInvalidSubmit">
+        <FluentValidationValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="category" class="rope-add-label">Category</label>
+            <SfDropDownList @bind-Value="rope.Category" class="form-control" id="category"
+                            Width="250px"
+                            DataSource="categorys"
+                            Placeholder="Category">
+                <DropDownListFieldSettings Text="DisplayName"></DropDownListFieldSettings>
+            </SfDropDownList>
+            <ValidationMessage For="@(() => rope.Category)"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="name" class="rope-add-label">Name</label>
+            <SfTextBox @bind-Value="rope.Name" class="form-control" id="name"
+                Width="250px"
+                Placeholder="Name">
+            </SfTextBox>
+            <ValidationMessage For="@(() => rope.Name)"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="brand" class="rope-add-label">Brand</label>
+            <SfDropDownList @bind-Value="rope.Brand" class="form-control" id="brand"
+                Width="250px"
+                DataSource="brands"
+                Placeholder="Brand">
+                <DropDownListFieldSettings Text="Name"></DropDownListFieldSettings>
+            </SfDropDownList>
+            <ValidationMessage For="@(() => rope.Brand)"></ValidationMessage>
+        </div>    
+
+        <div class="form-group">
+            <label for="diameter" class="rope-add-label">Diameter (mm)</label>
+            <SfNumericTextBox @bind-Value="rope.Diameter" class="form-control" id="diameter"
+                Width="250px"
+                Placeholder="Diameter (mm)"
+                Step="0.1"
+                Format="0.0"
+                Decimals="1">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.Diameter)"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="massPerUnitLength" class="rope-add-label">Weight (g/m)</label>
+            <SfNumericTextBox @bind-Value="rope.MassPerUnitLength" class="form-control" id="massPerUnitLength"
+                Width="250px"
+                Placeholder="Mass/Length (g/m)"
+                Step="0.1"
+                Format="0.0"
+                Decimals="1">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.MassPerUnitLength)"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="sheathPercentage" class="rope-add-label">Sheath Percentage (%)</label>
+            <SfNumericTextBox @bind-Value="rope.SheathPercentage" class="form-control" id="sheathPercentage"
+                              Width="250px"
+                              Placeholder="Sheath Percentage (%)"
+                              Step="0.1"
+                              Format="0.0"
+                              Decimals="1">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.SheathPercentage)"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="sheathSlippage" class="rope-add-label">Sheath Slippage (%)</label>
+            <SfNumericTextBox @bind-Value="rope.SheathSlippage" class="form-control" id="sheathSlippage"
+                              Width="250px"
+                              Placeholder="Sheath Slippage (%)"
+                              Step="0.1"
+                              Format="0.0"
+                              Decimals="1">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.SheathSlippage)"></ValidationMessage>
+        </div>
+
+        <!--<span>Impact Force</span>
+        <br />-->
+
+        <div class="form-group" hidden="@Hide_ImpactForce55kgOneStrand()">
+            <label for="impactForce55kgOneStrand" class="rope-add-label">Impact Force (55kg, One Strand) (kN)</label>
+            <SfNumericTextBox @bind-Value="rope.ImpactForce55kgOneStrand" class="form-control" id="impactForce55kgOneStrand"
+                              Width="250px"
+                              Placeholder="Impact Force (55kg, One Strand) (kN)"
+                              Step="0.1"
+                              Format="0.0"
+                              Decimals="1">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.ImpactForce55kgOneStrand)"></ValidationMessage>
+        </div>
+
+
+        <div class="form-group" hidden="@Hide_ImpactForce80kgOneStrand()">
+            <label for="impactForce80kgOneStrand" class="rope-add-label">Impact Force (80kg, One Strand) (kN)</label>
+            <SfNumericTextBox @bind-Value="rope.ImpactForce80kgOneStrand" class="form-control" id="impactForce80kgOneStrand"
+                            Width="250px"
+                            Placeholder="Impact Force (80kg, One Strand) (kN)"
+                            Step="0.1"
+                            Format="0.0"
+                            Decimals="1">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.ImpactForce80kgOneStrand)"></ValidationMessage>
+        </div>
+
+        <div class="form-group" hidden="@Hide_ImpactForce80kgTwoStrand()">
+            <label for="impactForce80kgTwoStrand" class="rope-add-label">Impact Force (80kg, Two Strand) (kN)</label>
+            <SfNumericTextBox @bind-Value="rope.ImpactForce80kgTwoStrand" class="form-control" id="impactForce80kgTwoStrand"
+                              Width="250px"
+                              Placeholder="Impact Force (80kg, Two Strand) (kN)"
+                              Step="0.1"
+                              Format="0.0"
+                              Decimals="1">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.ImpactForce80kgTwoStrand)"></ValidationMessage>
+        </div>
+
+        <!--<span>Static Elongation</span>
+        <br />-->
+
+        <div class="form-group" hidden="@Hide_StaticElongation80kgOneStrand()">
+            <label for="staticElongation80kgOneStrand" class="rope-add-label">Static Elongation (80kg, One Strand) (%)</label>
+            <SfNumericTextBox @bind-Value="rope.StaticElongation80kgOneStrand" class="form-control" id="staticElongation80kgOneStrand"
+                              Width="250px"
+                              Placeholder="Static Elongation (80kg, One Strand) (%)"
+                              Step="0.1"
+                              Format="0.0"
+                              Decimals="1">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.StaticElongation80kgOneStrand)"></ValidationMessage>
+        </div>
+
+        <div class="form-group" hidden="@Hide_StaticElongation80kgTwoStrand()">
+            <label for="staticElongation80kgTwoStrand" class="rope-add-label">Static Elongation (80kg, Two Strand) (%)</label>
+            <SfNumericTextBox @bind-Value="rope.StaticElongation80kgTwoStrand" class="form-control" id="staticElongation80kgTwoStrand"
+                              Width="250px"
+                              Placeholder="Static Elongation (80kg, Two Strand) (%)"
+                              Step="0.1"
+                              Format="0.0"
+                              Decimals="1">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.StaticElongation80kgTwoStrand)"></ValidationMessage>
+        </div>
+
+        <!--<span>Dynamic Elongation</span>
+        <br />-->
+
+        @if (Show_DynamicElongation55kgOneStrand())
+        {
+            <div class="form-group">
+                <label for="dynamicElongation55kgOneStrand" class="rope-add-label">Dynamic Elongation (55kg, One Strand) (%)</label>
+                <SfNumericTextBox @bind-Value="rope.DynamicElongation55kgOneStrand" class="form-control" id="dynamicElongation55kgOneStrand"
+                              Width="250px"
+                              Placeholder="Dynamic Elongation (55kg, One Strand) (%)"
+                              Step="0.1"
+                              Format="0.0"
+                              Decimals="1">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => rope.DynamicElongation55kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+
+        @if (Show_DynamicElongation80kgOneStrand())
+        {
+            <div class="form-group">
+                <label for="dynamicElongation80kgOneStrand" class="rope-add-label">Dynamic Elongation (80kg, One Strand) (%)</label>
+                <SfNumericTextBox @bind-Value="rope.DynamicElongation80kgOneStrand" class="form-control" id="dynamicElongation80kgOneStrand"
+                            Width="250px"
+                            Placeholder="Dynamic Elongation (80kg, One Strand) (%)"
+                            Step="0.1"
+                            Format="0.0"
+                            Decimals="1">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => rope.DynamicElongation80kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+
+        @if (Show_DynamicElongation80kgTwoStrand())
+        {
+            <div class="form-group">
+                <label for="dynamicElongation80kgTwoStrand" class="rope-add-label">Dynamic Elongation (80kg, Two Strand) (%)</label>
+                <SfNumericTextBox @bind-Value="rope.DynamicElongation80kgTwoStrand" class="form-control" id="dynamicElongation80kgTwoStrand"
+                              Width="250px"
+                              Placeholder="Dynamic Elongation (80kg, Two Strand) (%)"
+                              Step="0.1"
+                              Format="0.0"
+                              Decimals="1">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => rope.DynamicElongation80kgTwoStrand)"></ValidationMessage>
+            </div>
+        }
+
+        <!--<span>Drops Before Break</span>
+        <br />-->
+
+        <div class="form-group" hidden="@Hide_DropsBeforeBreak55kgOneStrand()">
+            <label for="dropsBeforeBreak55kgOneStrand" class="rope-add-label">Drops Before Break (55kg, One Strand)</label>
+            <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak55kgOneStrand" class="form-control" id="dropsBeforeBreak55kgOneStrand"
+                              TValue="int?"
+                              Width="250px"
+                              Placeholder="Drops Before Break (55kg, One Strand)"
+                              Step="1"
+                              Format="#0"
+                              Decimals="1">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.DropsBeforeBreak55kgOneStrand)"></ValidationMessage>
+        </div>
+
+        <div class="form-group" hidden="@Hide_DropsBeforeBreak80kgOneStrand()">
+            <label for="dropsBeforeBreak80kgOneStrand" class="rope-add-label">Drops Before Break (80kg, One Strand)</label>
+            <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak80kgOneStrand" class="form-control" id="dropsBeforeBreak80kgOneStrand"
+                              TValue="int?"
+                              Width="250px"
+                              Placeholder="Drops Before Break (80kg, One Strand)"
+                              Step="1"
+                              Format="#0"
+                              Decimals="1">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.DropsBeforeBreak80kgOneStrand)"></ValidationMessage>
+        </div>
+
+        <div class="form-group" hidden="@Hide_DropsBeforeBreak80kgTwoStrand()">
+            <label for="dropsBeforeBreak80kgTwoStrand" class="rope-add-label">Drops Before Break (80kg, Two Strand)</label>
+            <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak80kgTwoStrand" class="form-control" id="dropsBeforeBreak80kgTwoStrand"
+                              TValue="int?"
+                              Width="250px"
+                              Placeholder="Drops Before Break (80kg, Two Strand)"
+                              Step="1"
+                              Format="#0"
+                              Decimals="1">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.DropsBeforeBreak80kgTwoStrand)"></ValidationMessage>
+        </div>
+
+        @if (edit)
+        {
+            <SfButton>Submit Changes</SfButton>
+        }
+        else
+        {
+            <SfButton>Submit</SfButton>
+        }
+    
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public int? ropeId { get; set; }
+
+    private bool edit { get; set; } = false;
+
+    private RopeDto rope = new RopeDto();
+    private List<CategoryDto> categorys = new List<CategoryDto>();
+    private List<BrandDto> brands = new List<BrandDto>();
+
+    SfToast ToastObj;
+    private string ToastTitle = "Success.";
+    private string ToastContent = "Rope added.";
+
+    [Inject]
+    private IRopeService ropeService { get; set; }
+    [Inject]
+    private ICategoryService categoryService { get; set; }
+    [Inject]
+    private IBrandService brandService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ropeId = ropeId ?? 0;
+
+        if (ropeId.HasValue && ropeId > 0)
+        {
+            edit = true;
+            rope = ropeService.GetRopeById(ropeId.Value);
+        }
+
+        categorys = categoryService.GetAllCategorys();
+        brands = brandService.GetAllBrands();
+    }
+
+    private void AddRope(EditContext editContext)
+    {
+        if (rope != null)
+        {
+            ropeService.AddRope(rope);
+            ToastObj.ShowAsync();
+            ClearFields();
+        }
+    }
+
+    private void ClearFields()
+    {
+        rope = new RopeDto();
+    }
+
+    private void FormInvalidSubmit(EditContext editContext)
+    {
+
+    }
+
+    private void Cancel()
+    {
+        // Perform any cancel logic or navigation
+    }
+
+    //private void OnCategoryChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<Category> args)
+    //{
+    // Handle category change event if needed
+    //}
+
+    private bool Hide_ImpactForce55kgOneStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Half, Category.HalfTwin };
+        return !RopeCategoryCheck(categories);
+    }
+
+    private bool Hide_ImpactForce80kgOneStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Single };
+        return !RopeCategoryCheck(categories);
+    }
+
+    private bool Hide_ImpactForce80kgTwoStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Twin, Category.HalfTwin };
+        return !RopeCategoryCheck(categories);
+    }
+
+
+    private bool Hide_StaticElongation80kgOneStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Single, Category.Half, Category.HalfTwin };
+        return !RopeCategoryCheck(categories);
+    }
+
+    private bool Hide_StaticElongation80kgTwoStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Twin, Category.HalfTwin };
+        return !RopeCategoryCheck(categories);
+    }
+
+
+    private bool Show_DynamicElongation55kgOneStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Half, Category.HalfTwin };
+        return RopeCategoryCheck(categories);
+    }
+
+    private bool Show_DynamicElongation80kgOneStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Single };
+        return RopeCategoryCheck(categories);
+    }
+
+    private bool Show_DynamicElongation80kgTwoStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Twin, Category.HalfTwin };
+        return RopeCategoryCheck(categories);
+    }
+
+
+    private bool Hide_DropsBeforeBreak55kgOneStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Half };
+        return !RopeCategoryCheck(categories);
+    }
+
+    private bool Hide_DropsBeforeBreak80kgOneStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Single };
+        return !RopeCategoryCheck(categories);
+    }
+
+    private bool Hide_DropsBeforeBreak80kgTwoStrand()
+    {
+        Enum[] categories = new Enum[] { Category.Triple, Category.Twin, Category.HalfTwin };
+        return !RopeCategoryCheck(categories);
+    }
+
+    private bool RopeCategoryCheck(Enum[] categories)
+    {
+        var contains = false;
+
+        if (categories.Contains(rope?.Category?.Category))
+        {
+            contains = true;
+        }
+
+        return contains;
+    }
+}

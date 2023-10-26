@@ -1,0 +1,60 @@
+﻿@page "/testAdd"
+@using Syncfusion.Blazor.Inputs;
+@using Syncfusion.Blazor.Buttons;
+@using System.ComponentModel.DataAnnotations;
+
+<EditForm Model="@editorModel" OnValidSubmit="AddEditorModel">
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label for="employee-name">Employee Name:</label>
+        <SfTextBox ID="employee-name" @bind-Value="editorModel.Name"></SfTextBox>
+        <ValidationMessage For="@(() => editorModel.Name)"></ValidationMessage>
+    </div>
+
+    <div class="form-group">
+        <label for="numberInt">NumberInt:</label>
+        <SfNumericTextBox ID="numberInt" @bind-Value=editorModel.NumberInt></SfNumericTextBox>
+        <ValidationMessage For="@(() => editorModel.NumberInt)"></ValidationMessage>
+    </div>
+
+    <div class="form-group">
+        <label for="numberDouble">NumberDouble:</label>
+        <SfNumericTextBox ID="numberDouble" @bind-Value=editorModel.NumberDouble></SfNumericTextBox>
+        <ValidationMessage For="@(() => editorModel.NumberDouble)"></ValidationMessage>
+    </div>
+
+
+    <SfButton>Submit</SfButton>
+</EditForm>
+
+@code {
+    private EditorModel editorModel = new EditorModel();
+
+    public class EditorModel
+    {
+
+
+        [Required(ErrorMessage = "Enter employee name.")]
+        [MinLength(3, ErrorMessage = "Name should have more than 2 characters.")]
+        public string? Name { get; set; }
+        
+        [Required]
+        [Range(typeof(int), "22", "50", ErrorMessage = "The {0} value should be between {1} and {2}.")]
+        public int? NumberInt { get; set; }
+
+        [Required]
+        [Range(typeof(double), "0", "12", ErrorMessage = "The {0} value should be between {1} and {2}.")]
+        public double? NumberDouble { get; set; }
+    }
+
+    private void AddEditorModel(EditContext editContext)
+    {
+        if (editorModel != null)
+        {
+            //ropeService.AddRope(rope);
+            // Perform any additional logic or navigation after adding the rope
+        }
+    }
+
+}
