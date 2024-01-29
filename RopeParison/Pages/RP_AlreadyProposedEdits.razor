@@ -1,0 +1,14 @@
+﻿
+@if (edit)
+{
+    <div class="form-group">
+        <label for="" class="rope-add-label"></label>
+        <span class="sub-information-header">Already Proposed Edits:</span>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public bool edit { get; set; }
+}

@@ -1,0 +1,75 @@
+﻿@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using System.Linq
+
+<div class="h5 sidebar-header">
+    Column Visibility
+</div>
+<div class="sidebar-content">
+    <div class="row sidebar-row-buttongroup">
+        <SfButtonGroup Mode="Syncfusion.Blazor.SplitButtons.SelectionMode.Multiple" CssClass="e-small e-flat e-round-corner">
+            <!-- Note: @onclick registering twice (v24.1.47). Changed to @onchange. -->
+            <ButtonGroupButton CssClass="@(columnVisibilityFilter.SelectedSingle ? "e-primary" : "")" @onchange="@ProcessColumnVisibility" @bind-Selected="@columnVisibilityFilter.SelectedSingle">Single</ButtonGroupButton>
+            <ButtonGroupButton CssClass="@(columnVisibilityFilter.SelectedHalf ? "e-primary" : "")" @onchange="@ProcessColumnVisibility" @bind-Selected="@columnVisibilityFilter.SelectedHalf">Half</ButtonGroupButton>
+            <ButtonGroupButton CssClass="@(columnVisibilityFilter.SelectedTwin ? "e-primary" : "")" @onchange="@ProcessColumnVisibility" @bind-Selected="@columnVisibilityFilter.SelectedTwin">Twin</ButtonGroupButton>
+        </SfButtonGroup>
+    </div>
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@columnVisibilityFilter.ShowId" @onchange="ProcessColumnVisibility">Rope Id</SfCheckBox>
+    </div>
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@columnVisibilityFilter.ShowCategory" @onchange="ProcessColumnVisibility">Category</SfCheckBox>
+    </div>
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@columnVisibilityFilter.ShowBasic" @onchange="ProcessColumnVisibility">Basic</SfCheckBox>
+    </div>
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@columnVisibilityFilter.ShowImpactForce" @onchange="ProcessColumnVisibility">Impact Force</SfCheckBox>
+    </div>
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@columnVisibilityFilter.ShowStaticElongation" @onchange="ProcessColumnVisibility">Static Elongation</SfCheckBox>
+    </div>
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@columnVisibilityFilter.ShowDynamicElongation" @onchange="ProcessColumnVisibility">Dynamic Elongation</SfCheckBox>
+    </div>
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@columnVisibilityFilter.ShowDropsBeforeBreak" @onchange="ProcessColumnVisibility">Drops Before Break</SfCheckBox>
+    </div>
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@columnVisibilityFilter.ShowExtraPhysicalProperties" @onchange="ProcessColumnVisibility">Extra Properties</SfCheckBox>
+    </div>
+</div>
+
+@code {
+    //-----------------------------------------------
+    //Services
+    //-----------------------------------------------
+    [Inject]
+    private IRopeService ropeService { get; set; }
+    //-----------------------------------------------
+    //ServicesEND
+    //-----------------------------------------------
+
+    [Parameter]
+    public EventCallback<RopePropertyInformationsDto> ColumnVisibilityChanged { get; set; }
+
+    public ColumnVisibilityFilterDto columnVisibilityFilter { get; set; } = new ColumnVisibilityFilterDto();
+
+    public RopePropertyInformationsDto rPrIn { get; set; } = new RopePropertyInformationsDto();
+
+    //**********************************************************************************************************************************************************************************************
+    //DeclarationsEND
+    //**********************************************************************************************************************************************************************************************
+
+
+    protected override void OnInitialized()
+    {
+        ProcessColumnVisibility();
+    }
+
+    public async void ProcessColumnVisibility()
+    {
+        rPrIn = ropeService.GetRopePropertyInformations(columnVisibilityFilter);
+        await ColumnVisibilityChanged.InvokeAsync(rPrIn);
+    }
+}

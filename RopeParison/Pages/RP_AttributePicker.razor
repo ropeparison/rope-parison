@@ -1,0 +1,66 @@
+﻿@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using System.Linq
+
+
+<div class="sidebar-content">
+    <div class="row sidebar-row-select">
+        <SfDropDownList TValue="string" TItem="RopePropertyInformationDto" Placeholder="Select a rope attribute" DataSource="ropeAttributeListChoose" @bind-Value="ropeAttributeName">
+            <DropDownListFieldSettings Value="LogicalName" Text="Name"></DropDownListFieldSettings>
+            <DropDownListEvents TValue="string" TItem="RopePropertyInformationDto" ValueChange="ProcessAttributeSelection"></DropDownListEvents>
+        </SfDropDownList>
+    </div>
+</div>
+
+
+
+@code {
+    //-----------------------------------------------
+    //Services
+    //-----------------------------------------------
+    [Inject]
+    private IRopeService ropeService { get; set; }
+    //-----------------------------------------------
+    //ServicesEND
+    //-----------------------------------------------
+
+    [Parameter]
+    public bool numericOnly { get; set; }
+
+    [Parameter]
+    public string initialValue { get; set; }
+
+    [Parameter]
+    public EventCallback<RopePropertyInformationDto> AttributeSelectionChanged { get; set; }
+
+    private List<RopePropertyInformationDto> ropeAttributeListChoose = new List<RopePropertyInformationDto>();
+
+    public RopePropertyInformationDto ropeAttributeSelected = new RopePropertyInformationDto();
+
+    public string ropeAttributeName = "";
+
+
+    //**********************************************************************************************************************************************************************************************
+    //DeclarationsEND
+    //**********************************************************************************************************************************************************************************************
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        ropeAttributeListChoose = ropeService.GetRopePropertyInformationList();
+
+        if (numericOnly)
+        {
+            ropeAttributeListChoose = ropeAttributeListChoose.Where(x => x.Type == RopePropertyInformationType.Double || x.Type == RopePropertyInformationType.Int).ToList();
+        }
+
+        ropeAttributeName = initialValue;
+    }
+
+    public async void ProcessAttributeSelection(ChangeEventArgs<string, RopePropertyInformationDto> args)
+    {
+        ropeAttributeSelected = args.ItemData;
+        await AttributeSelectionChanged.InvokeAsync(ropeAttributeSelected);
+    }
+
+}

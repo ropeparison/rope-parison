@@ -1,0 +1,86 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>RopeParison</PageTitle>
+
+<div class="page">
+
+    <main>
+        <div class="control-container">
+ 
+
+            <SfAppBar Mode="AppBarMode.Regular" ColorMode="AppBarColor.Light">
+                <!--<SfMenu CssClass="e-inherit e-appbar-icon-menu e-primary"
+                        TValue="MenuItem"
+                        HamburgerMode="true"
+                        ShowItemOnClick="true"
+                        Title="Menu"
+                        Items="@menuItems">
+                </SfMenu>--> <!--Hamburger not working at the moment-->
+                <SfMenu CssClass="e-inherit e-appbar-icon-menu e-primary"
+                        TValue="MenuItem"
+                        HamburgerMode="false"
+                        Items="@menuItems">
+
+                </SfMenu>
+                <AppBarSpacer></AppBarSpacer>
+                <div class="menu-item-margin">
+                    <span class="regular">RopeParison</span>
+                </div>
+                <AppBarSeparator></AppBarSeparator>
+                <div class="menu-item-margin">
+                    <a class="btn btn-light" href="https://github.com/ropeparison/rope-parison"><i class="fa-brands fa-github"></i></a>
+                </div>
+
+            </SfAppBar>
+        </div>
+
+
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private List<MenuItem> menuItems = new List<MenuItem>
+    {
+        
+        new MenuItem { Id = "Header1", Text = "Ropes", Url="/ropes" },
+        //new MenuItem { Id = "Header3", Text = "Rope List", Url="/ropeList" },
+        new MenuItem { Id = "Header2", Text = "Graphs",
+            Items = new List<MenuItem>
+            {
+                new MenuItem { Text = "Scatter", Url="/scatter" },
+                new MenuItem { Text = "Line", Url="/line" },
+                new MenuItem { Text = "Bubble", Url="/bubble" },
+            }
+        },
+        new MenuItem { Id = "Header3", Text = "Add Rope", Url="/addRope" },
+        new MenuItem { Id = "Header4", Text = "Edit Rope", Url="/editRope/1" },
+        new MenuItem { Id = "Header2", Text = "Manage Ropes",
+            Items = new List<MenuItem>
+            {
+                new MenuItem { Text = "Verify Rope Additions", Url="/verifyRope/1" },
+                new MenuItem { Text = "Process Rope Edit Suggestions", Url="/approveEditRope/1" },
+                new MenuItem { Text = "Delete Rope", Url="/deleteRope/1" },
+            }
+        },
+        new MenuItem { Id = "Header5", Text = "About", Url="/about" },
+    };
+}
+
+<style>
+    .control-container .e-btn.e-inherit {
+        margin: 0 3px;
+    }
+
+    .menu-item-margin {
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+    .menu-text-level-one {
+        color: white;
+    }
+</style>

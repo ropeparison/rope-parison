@@ -1,0 +1,16 @@
+﻿<ChartDataLabel Visible="true" Position="Syncfusion.Blazor.Charts.LabelPosition.Auto" Name="InformationText">
+    <Template>
+        @{
+            var data = context as ChartDataPointInfo;
+            var displayDataStr = data.Text;
+            var displayData = displayDataStr.Split(":::");
+
+            <div>
+                @displayData[0] @displayData[1]
+            </div>
+        }
+    </Template>
+</ChartDataLabel>
+@code {
+
+}

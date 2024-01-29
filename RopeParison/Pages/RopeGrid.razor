@@ -1,0 +1,95 @@
+﻿@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using System.Linq
+
+<SfGrid @ref="gridRopes"
+        DataSource="@ropes"
+        ShowColumnChooser="@gridShowColumnChooser"
+        Toolbar="@gridToolbarItems"
+        AllowFiltering="@gridAllowFiltering"
+        AllowPaging="true"
+        AllowSorting="true"
+        AllowResizing="true"
+        AllowReordering="true"
+        AllowSelection="true"
+        EnableAdaptiveUI="@isSmall"
+        AllowTextWrap="true"
+        EnableStickyHeader="true"
+        Width="@gridWidth"
+        Height="100%"
+        RowRenderingMode="@gridRowDirection">
+    <!--Height="80vh"-->
+
+    <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Excel"></GridFilterSettings>
+    <GridPageSettings PageCount="5"></GridPageSettings>
+
+    <GridColumns>
+        <!--<GridColumn Field="@nameof(RopeDto.RopeId)" HeaderText="@rPrIn.RopeId.NameUnit" Visible="@rPrIn.RopeId.Visible" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />-->
+        <GridColumn Field="Name" HeaderText="@rPrIn.Name.NameUnit" Visible="@rPrIn.Name.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="Brand.Name" HeaderText="@rPrIn.Brand.NameUnit" Visible="@rPrIn.Brand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="Category.DisplayName" HeaderText="@rPrIn.Category.NameUnit" Visible="@rPrIn.Category.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+        <GridColumn Field="Diameter" HeaderText="@rPrIn.Diameter.NameUnit" Visible="@rPrIn.Diameter.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.MassPerUnitLength)" HeaderText="@rPrIn.MassPerUnitLength.NameUnit" Format="##0.##" Visible="@rPrIn.MassPerUnitLength.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="RopeCalculatedParameterSet.Area" HeaderText="@rPrIn.RoCaPaSePrIn.Area.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.Area.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.SheathPercentage)" HeaderText="@rPrIn.SheathPercentage.NameUnit" Visible="@rPrIn.SheathPercentage.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="RopeCalculatedParameterSet.SheathArea" HeaderText="@rPrIn.RoCaPaSePrIn.SheathArea.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.SheathArea.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="RopeCalculatedParameterSet.SheathThickness" HeaderText="@rPrIn.RoCaPaSePrIn.SheathThickness.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.SheathThickness.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="RopeCalculatedParameterSet.CoreArea" HeaderText="@rPrIn.RoCaPaSePrIn.CoreArea.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.CoreArea.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="RopeCalculatedParameterSet.CoreDiameter" HeaderText="@rPrIn.RoCaPaSePrIn.CoreDiameter.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.CoreDiameter.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="RopeCalculatedParameterSet.Density" HeaderText="@rPrIn.RoCaPaSePrIn.Density.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.Density.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+        <GridColumn Field="@nameof(RopeDto.ImpactForce55kgOneStrand)" HeaderText="@rPrIn.ImpactForce55kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.ImpactForce55kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.ImpactForce80kgOneStrand)" HeaderText="@rPrIn.ImpactForce80kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.ImpactForce80kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.ImpactForce80kgTwoStrand)" HeaderText="@rPrIn.ImpactForce80kgTwoStrand.NameUnit" Format="##0.##" Visible="@rPrIn.ImpactForce80kgTwoStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+        <GridColumn Field="@nameof(RopeDto.StaticElongation80kgOneStrand)" HeaderText="@rPrIn.StaticElongation80kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.StaticElongation80kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.StaticElongation80kgTwoStrand)" HeaderText="@rPrIn.StaticElongation80kgTwoStrand.NameUnit" Format="##0.##" Visible="@rPrIn.StaticElongation80kgTwoStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+        <GridColumn Field="@nameof(RopeDto.DynamicElongation55kgOneStrand)" HeaderText="@rPrIn.DynamicElongation55kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DynamicElongation55kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.DynamicElongation80kgOneStrand)" HeaderText="@rPrIn.DynamicElongation80kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DynamicElongation80kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.DynamicElongation80kgTwoStrand)" HeaderText="@rPrIn.DynamicElongation80kgTwoStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DynamicElongation80kgTwoStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak55kgOneStrand)" HeaderText="@rPrIn.DropsBeforeBreak55kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DropsBeforeBreak55kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak80kgOneStrand)" HeaderText="@rPrIn.DropsBeforeBreak80kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DropsBeforeBreak80kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak80kgTwoStrand)" HeaderText="@rPrIn.DropsBeforeBreak80kgTwoStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DropsBeforeBreak80kgTwoStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+        <GridColumn Field="@nameof(RopeDto.SheathSlippage)" HeaderText="@rPrIn.SheathSlippage.NameUnit" Visible="@rPrIn.SheathSlippage.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+    </GridColumns>
+</SfGrid>
+
+@code {
+
+    [Parameter]
+    public List<RopeDto> ropes { get; set; } = new List<RopeDto>();
+
+    [Parameter]
+    public RopePropertyInformationsDto rPrIn { get; set; } = new RopePropertyInformationsDto();
+
+    [Parameter]
+    public Syncfusion.Blazor.Grids.RowDirection gridRowDirection { get; set; } = RowDirection.Horizontal;
+
+    [Parameter]
+    public bool isSmall { get; set; } = false;
+
+
+    private SfGrid<RopeDto> gridRopes = new SfGrid<RopeDto>();
+    private bool gridShowColumnChooser = false;
+    private bool gridAllowFiltering = false;
+    private static readonly string GRID_COL_WIDTH_MIN = "50px";
+    private static readonly string GRID_COL_WIDTH_MAX_LARGE = "150px";
+    private static readonly string GRID_COL_WIDTH_MAX_SMALL = "120px";
+    private string gridColWidthMax = GRID_COL_WIDTH_MAX_LARGE;
+
+    private static readonly string GRID_WIDTH_SMALL = "100vw"; //Using vw the datagrid horizontal scrollbar automatically triggers, it does not appear to automatically trigger using %, just compresses the columns.
+    private static readonly string GRID_WIDTH_LARGE = "100%";
+    private string gridWidth = GRID_WIDTH_LARGE;
+
+
+
+    public string[] gridToolbarItems;
+    private Dictionary<string, object> gridColumnCustomAttributes_Header = new Dictionary<string, object>();
+    private Dictionary<string, object> gridColumnCustomAttributes_HeaderHorizontal = new Dictionary<string, object>();
+    private Dictionary<string, object> gridColumnCustomAttributes_HeaderVertical = new Dictionary<string, object>() { { "class", "vertical-header" } };
+}

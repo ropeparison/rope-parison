@@ -1,0 +1,243 @@
+﻿@page "/ropeList"
+@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+
+@using System.Linq
+
+<h3>Rope List</h3>
+
+@if (ropes != null)
+{
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="columnVisibilityDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Column Visibility
+        </button>
+        <div class="dropdown-menu" aria-labelledby="columnVisibilityDropdown">
+            @foreach (var column in columnVisibility.Keys)
+            {
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" checked="@columnVisibility[column]" @onchange="() => ToggleColumnVisibility(column)" id="@column">
+                    <label class="form-check-label" for="@column">
+                        @column
+                    </label>
+                </div>
+            }
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th hidden="@ColumnHidden("RopeId")">Rope ID</th>
+                <th hidden="@ColumnHidden("Name")">Name</th>
+                <th hidden="@ColumnHidden("Brand")">Brand</th>
+                <th hidden="@ColumnHidden("Category")">Category</th>
+                <th hidden="@ColumnHidden("Diameter")">Diameter</th>
+                <th hidden="@ColumnHidden("Weight")">Weight</th>
+                <th hidden="@ColumnHidden("Area")">Area</th>
+                <th hidden="@ColumnHidden("Sheath Percentage")">Sheath Percentage</th>
+                <th hidden="@ColumnHidden("Sheath Area")">Sheath Area</th>
+                <th hidden="@ColumnHidden("Sheath Thickness")">Sheath Thickness</th>
+                <th hidden="@ColumnHidden("Core Area")">Core Area</th>
+                <th hidden="@ColumnHidden("Core Diameter")">Core Diameter</th>
+                <th hidden="@ColumnHidden("Impact Force (55kg, 1 Strand)")">Impact Force (55kg, 1 Strand)</th>
+                <th hidden="@ColumnHidden("Impact Force (80kg, 1 Strand)")">Impact Force (80kg, 1 Strand)</th>
+                <th hidden="@ColumnHidden("Impact Force (80kg, 2 Strand)")">Impact Force (80kg, 2 Strand)</th>
+                <th hidden="@ColumnHidden("Static Elongation (80kg, 1 Strand)")">Static Elongation (80kg, 1 Strand)</th>
+                <th hidden="@ColumnHidden("Static Elongation (80kg, 2 Strand)")">Static Elongation (80kg, 2 Strand)</th>
+                <th hidden="@ColumnHidden("Dynamic Elongation (55kg, 1 Strand)")">Dynamic Elongation (55kg, 1 Strand)</th>
+                <th hidden="@ColumnHidden("Dynamic Elongation (80kg, 1 Strand)")">Dynamic Elongation (80kg, 1 Strand)</th>
+                <th hidden="@ColumnHidden("Dynamic Elongation (80kg, 2 Strand)")">Dynamic Elongation (80kg, 2 Strand)</th>
+                <th hidden="@ColumnHidden("Drops Before Break (55kg, 1 Strand)")">Drops Before Break (55kg, 1 Strand)</th>
+                <th hidden="@ColumnHidden("Drops Before Break (80kg, 1 Strand)")">Drops Before Break (80kg, 1 Strand)</th>
+                <th hidden="@ColumnHidden("Drops Before Break (80kg, 2 Strand)")">Drops Before Break (80kg, 2 Strand)</th>
+                <th hidden="@ColumnHidden("Sheath Slippage")">Sheath Slippage</th>
+            </tr>
+            <tr>
+                <th hidden="@ColumnHidden("RopeId")"></th>
+                <th hidden="@ColumnHidden("Name")">
+                    <input type="text" class="form-control" @bind="@filter.Name" />
+                </th>
+                <th hidden="@ColumnHidden("Brand")">
+                    <input type="text" class="form-control" @bind="@filter.BrandName" />
+                </th>
+                <th hidden="@ColumnHidden("Category")">
+                    <input type="text" class="form-control" @bind="@filter.CategoryName" />
+                </th>
+                <th hidden="@ColumnHidden("Diameter")">
+                    <input type="number" class="form-control" @bind="@filter.DiameterMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.DiameterMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Weight")">
+                    <input type="number" class="form-control" @bind="@filter.MassPerUnitLengthMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.MassPerUnitLengthMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Area")">
+                    <input type="number" class="form-control" @bind="@filter.AreaMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.AreaMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Sheath Percentage")">
+                    <input type="number" class="form-control" @bind="@filter.SheathPercentageMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.SheathPercentageMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Sheath Area")">
+                    <input type="number" class="form-control" @bind="@filter.SheathAreaMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.SheathAreaMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Sheath Thickness")">
+                    <input type="number" class="form-control" @bind="@filter.SheathThicknessMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.SheathThicknessMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Core Area")">
+                    <input type="number" class="form-control" @bind="@filter.CoreAreaMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.CoreAreaMax" placeholder="max" />
+                </th>
+                <th hidden="@ColumnHidden("Core Diameter")">
+                    <input type="number" class="form-control" @bind="@filter.CoreDiameterMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.CoreDiameterMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Impact Force (55kg, 1 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.ImpactForce55kgOneStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.ImpactForce55kgOneStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Impact Force (80kg, 1 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.ImpactForce80kgOneStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.ImpactForce80kgOneStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Impact Force (80kg, 2 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.ImpactForce80kgTwoStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.ImpactForce80kgTwoStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Static Elongation (80kg, 1 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.StaticElongation80kgOneStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.StaticElongation80kgOneStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Static Elongation (80kg, 2 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.StaticElongation80kgTwoStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.StaticElongation80kgTwoStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Dynamic Elongation (55kg, 1 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.DynamicElongation55kgOneStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.DynamicElongation55kgOneStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Dynamic Elongation (80kg, 1 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.DynamicElongation80kgOneStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.DynamicElongation80kgOneStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Dynamic Elongation (80kg, 2 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.DynamicElongation80kgTwoStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.DynamicElongation80kgTwoStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Drops Before Break (55kg, 1 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.DropsBeforeBreak55kgOneStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.DropsBeforeBreak55kgOneStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Drops Before Break (80kg, 1 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.DropsBeforeBreak80kgOneStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.DropsBeforeBreak80kgOneStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Drops Before Break (80kg, 2 Strand)")">
+                    <input type="number" class="form-control" @bind="@filter.DropsBeforeBreak80kgTwoStrandMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.DropsBeforeBreak80kgTwoStrandMax" placeholder="Max" />
+                </th>
+                <th hidden="@ColumnHidden("Sheath Slippage")">
+                    <input type="number" class="form-control" @bind="@filter.SheathSlippageMin" placeholder="Min" />
+                    <input type="number" class="form-control" @bind="@filter.SheathSlippageMax" placeholder="Max" />
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rope in ropes)
+            {
+                <tr>
+                    <td hidden="@ColumnHidden("RopeId")">@rope.RopeId</td>
+                    <td hidden="@ColumnHidden("Name")">@rope.Name</td>
+                    <td hidden="@ColumnHidden("Brand")">@rope.Brand.Name</td>
+                    <td hidden="@ColumnHidden("Category")">@rope.Category.DisplayName</td>
+                    <td hidden="@ColumnHidden("Diameter")">@rope.Diameter</td>
+                    <td hidden="@ColumnHidden("Weight")">@rope.MassPerUnitLength</td>
+                    <td hidden="@ColumnHidden("Area")">@rope.RopeCalculatedParameterSet.Area</td>
+                    <td hidden="@ColumnHidden("Sheath Percentage")">@rope.SheathPercentage</td>
+                    <td hidden="@ColumnHidden("Sheath Area")">@rope.RopeCalculatedParameterSet.SheathArea</td>
+                    <td hidden="@ColumnHidden("Sheath Thickness")">@rope.RopeCalculatedParameterSet.SheathThickness</td>
+                    <td hidden="@ColumnHidden("Core Area")">@rope.RopeCalculatedParameterSet.CoreArea</td>
+                    <td hidden="@ColumnHidden("Core Diameter")">@rope.RopeCalculatedParameterSet.CoreDiameter</td>
+                    <td hidden="@ColumnHidden("Impact Force (55kg, 1 Strand)")">@rope.ImpactForce55kgOneStrand</td>
+                    <td hidden="@ColumnHidden("Impact Force (80kg, 1 Strand)")">@rope.ImpactForce80kgOneStrand</td>
+                    <td hidden="@ColumnHidden("Impact Force (80kg, 2 Strand)")">@rope.ImpactForce80kgTwoStrand</td>
+                    <td hidden="@ColumnHidden("Static Elongation (80kg, 1 Strand)")">@rope.StaticElongation80kgOneStrand</td>
+                    <td hidden="@ColumnHidden("Static Elongation (80kg, 2 Strand)")">@rope.StaticElongation80kgTwoStrand</td>
+                    <td hidden="@ColumnHidden("Dynamic Elongation (55kg, 1 Strand)")">@rope.DynamicElongation55kgOneStrand</td>
+                    <td hidden="@ColumnHidden("Dynamic Elongation (80kg, 1 Strand)")">@rope.DynamicElongation80kgOneStrand</td>
+                    <td hidden="@ColumnHidden("Dynamic Elongation (80kg, 2 Strand)")">@rope.DynamicElongation80kgTwoStrand</td>
+                    <td hidden="@ColumnHidden("Drops Before Break (55kg, 1 Strand)")">@rope.DropsBeforeBreak55kgOneStrand</td>
+                    <td hidden="@ColumnHidden("Drops Before Break (80kg, 1 Strand)")">@rope.DropsBeforeBreak80kgOneStrand</td>
+                    <td hidden="@ColumnHidden("Drops Before Break (80kg, 2 Strand)")">@rope.DropsBeforeBreak80kgTwoStrand</td>
+                    <td hidden="@ColumnHidden("Sheath Slippage")">@rope.SheathSlippage</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private RopeFilterDto filter = new RopeFilterDto();
+    private List<RopeDto> ropes;
+
+    [Inject]
+    private IRopeService ropeService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ropes = ropeService.GetRopes_FilteredB(filter);
+    }
+
+    private void ApplyFilter()
+    {
+        ropes = ropeService.GetRopes_FilteredB(filter);
+    }
+
+    private void ResetFilter()
+    {
+        filter = new RopeFilterDto();
+        ropes = ropeService.GetRopes_FilteredB(filter);
+    }
+
+    private Dictionary<string, bool> columnVisibility = new Dictionary<string, bool>()
+    {
+        { "RopeId", false },
+        { "Name", true },
+        { "Brand", true },
+        { "Category", true },
+        { "Diameter", true },
+        { "Weight", true },
+        { "Area", false },
+        { "Sheath Percentage", true },
+        { "Sheath Area", false },
+        { "Sheath Thickness", false },
+        { "Core Area", false },
+        { "Core Diameter", false },
+        { "Impact Force (55kg, 1 Strand)", true },
+        { "Impact Force (80kg, 1 Strand)", true },
+        { "Impact Force (80kg, 2 Strand)", true },
+        { "Static Elongation (80kg, 1 Strand)", true },
+        { "Static Elongation (80kg, 2 Strand)", true },
+        { "Dynamic Elongation (55kg, 1 Strand)", true },
+        { "Dynamic Elongation (80kg, 1 Strand)", true },
+        { "Dynamic Elongation (80kg, 2 Strand)", true },
+        { "Drops Before Break (55kg, 1 Strand)", false },
+        { "Drops Before Break (80kg, 1 Strand)", false },
+        { "Drops Before Break (80kg, 2 Strand)", false },
+        { "Sheath Slippage", false },
+    };
+
+    private void ToggleColumnVisibility(string column)
+    {
+        columnVisibility[column] = !columnVisibility[column];
+    }
+
+    private bool ColumnHidden(string column)
+    {
+        return !columnVisibility[column];
+    }
+}

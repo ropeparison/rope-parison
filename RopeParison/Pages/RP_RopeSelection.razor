@@ -1,0 +1,240 @@
+﻿@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using System.Linq
+
+<div class="h5">
+    Rope Selection
+    <SfButton ID="ToggleRopeSelectionMode" CssClass="e-flat e-round e-outline" @onclick="ToggleRopeSelectionMode" IconCss="fa-solid fa-shuffle"></SfButton>
+    <SfTooltip Target="#ToggleRopeSelectionMode" Content="Toggle rope selection mode" OpensOn="Hover" OpenDelay="500" Position="Syncfusion.Blazor.Popups.Position.TopCenter"></SfTooltip>
+</div>
+@if (!inc_OptionA)
+{
+    <div class="sidebar-content">
+        <div class="row sidebar-row-multiselect">
+            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_RopeListSelectedId" TItem="RopeDto" DataSource="@inc_RopeListChoose" Placeholder="Ropes">
+                <MultiSelectFieldSettings Value="RopeId" Text="Name"></MultiSelectFieldSettings>
+                <MultiSelectEvents TValue="List<int>" TItem="RopeDto" ValueChange="@ProcessRopeInclusion"></MultiSelectEvents>
+            </SfMultiSelect>
+        </div>
+        <div class="row sidebar-row-checkbox">
+            <SfCheckBox @bind-Checked="@inc_IncludeUnverified" @onchange="inc_IncludeUnverifiedChanged">Include Unverified Ropes</SfCheckBox>
+        </div>
+    </div>
+}
+else
+{
+    <div class="sidebar-content">
+
+        <div class="row sidebar-row-buttongroup">
+            <SfButtonGroup Mode="Syncfusion.Blazor.SplitButtons.SelectionMode.Multiple" CssClass="e-small e-flat e-round-corner">
+                <ButtonGroupButton CssClass="@(inc_SelectedSingle ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedSingle">Single</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedHalf ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalf">Half</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedTwin ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedTwin">Twin</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedHalfTwin ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalfTwin">HalfTwin</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedTriple ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedTriple">Triple</ButtonGroupButton>
+            </SfButtonGroup>
+        </div>
+        <div class="row sidebar-row-multiselect">
+            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_BrandListSelectedId" TItem="BrandDto" DataSource="@inc_BrandListChoose" Placeholder="Brands">
+                <MultiSelectFieldSettings Value="BrandId" Text="Name"></MultiSelectFieldSettings>
+                <MultiSelectEvents TValue="List<int>" TItem="BrandDto" ValueChange="@ProcessRopeInclusion"></MultiSelectEvents>
+            </SfMultiSelect>
+        </div>
+        <div class="row sidebar-row-range-slider front2">
+            <label class="sidebar-subheader sidebar-label">Diameter (mm)</label>
+            <SfSlider @bind-Value=inc_RangeDiameter Type="SliderType.Range" Min="6" Max="12" Step="0.1" CssClass="sidebar-range-slider">
+                <SliderTicks Placement="Placement.Before" Format="N0" ShowSmallTicks="true" LargeStep="1" SmallStep="0.5"></SliderTicks>
+                <SliderTooltip IsVisible="true" ShowOn="TooltipShowOn.Hover" Format="N1" Placement="TooltipPlacement.Before"></SliderTooltip>
+                <!--<SliderLimits Enabled="true" MinStart="6" MaxEnd="12"></SliderLimits>--><!--MaxStart="10" MinEnd="7"-->
+                <SliderEvents TValue="double[]" ValueChange="@ProcessRopeInclusion"></SliderEvents> <!--OnChange triggers while slider is being slid, ValueChange triggers after slide complete and mouse up-->
+            </SfSlider>
+        </div>
+        <div class="row sidebar-row-range-slider front-3">
+            <label class="sidebar-subheader sidebar-label">Weight (g/m)</label>
+            <SfSlider @bind-Value=inc_RangeMassPerUnitLength Type="SliderType.Range" Min="20" Max="100" Step="5" CssClass="sidebar-range-slider">
+                <SliderTicks Placement="Placement.Before" Format="N0" ShowSmallTicks="true" LargeStep="10" SmallStep="5"></SliderTicks>
+                <SliderTooltip IsVisible="true" ShowOn="TooltipShowOn.Hover" Format="N0" Placement="TooltipPlacement.Before"></SliderTooltip>
+                <!--<SliderLimits Enabled="true" MinStart="6" MaxEnd="12"></SliderLimits>--><!--MaxStart="10" MinEnd="7"-->
+                <SliderEvents TValue="double[]" ValueChange="@ProcessRopeInclusion"></SliderEvents> <!--OnChange triggers while slider is being slid, ValueChange triggers after slide complete and mouse up-->
+            </SfSlider>
+        </div>
+        <div class="row sidebar-row-range-slider front-4">
+            <span>
+                <label class="sidebar-subheader sidebar-label">Sheath Percentage</label>
+                <SfCheckBox ID="ToggleSheathPercentageFilter" @bind-Checked="@inc_IncRangeSheathPercentage" @onchange="ProcessRopeInclusion"></SfCheckBox>
+                <SfTooltip Target="#ToggleSheathPercentageFilter" Content="Toggle Sheath Percentage filter on/off. Note that some ropes do not specify sheath percentage and they will be excluded from results when the filter is on." OpensOn="Hover" OpenDelay="500" Position="Syncfusion.Blazor.Popups.Position.TopCenter" CssClass="front-5"></SfTooltip>
+                <!--Tooltip does not appear to be showing. Raise bug with syncfusion-->
+            </span>
+            <SfSlider @bind-Value=inc_RangeSheathPercentage Type="SliderType.Range" Min="0.2" Max="0.7" Step="0.05" CssClass="sidebar-range-slider" Enabled="@inc_IncRangeSheathPercentage">
+                <SliderTicks Placement="Placement.Before" Format="P0" ShowSmallTicks="true" LargeStep="0.1" SmallStep="0.05"></SliderTicks>
+                <SliderTooltip IsVisible="true" ShowOn="TooltipShowOn.Hover" Format="P0" Placement="TooltipPlacement.Before"></SliderTooltip>
+                <!--<SliderLimits Enabled="true" MinStart="6" MaxEnd="12"></SliderLimits>--><!--MaxStart="10" MinEnd="7"-->
+                <SliderEvents TValue="double[]" ValueChange="@ProcessRopeInclusion"></SliderEvents> <!--OnChange triggers while slider is being slid, ValueChange triggers after slide complete and mouse up-->
+            </SfSlider>
+        </div>
+        <div class="row sidebar-row-checkbox front-5">
+            <SfCheckBox @bind-Checked="@inc_IncludeUnverified" @onchange="ProcessRopeInclusion">Include Unverified Ropes</SfCheckBox>
+        </div>
+        <div class="row sidebar-row-range-slider front-5">
+            <!--<hr>-->
+            <br/>
+        </div>
+    </div>
+}
+
+
+@code {
+    //-----------------------------------------------
+    //Services
+    //-----------------------------------------------
+    [Inject]
+    private IRopeService ropeService { get; set; }
+    [Inject]
+    private IBrandService brandService { get; set; }
+    //-----------------------------------------------
+    //ServicesEND
+    //-----------------------------------------------
+
+    [Parameter]
+    public EventCallback<List<RopeDto>> RopeSelectionChanged { get; set; }
+
+    private List<RopeDto> ropes { get; set; } = new List<RopeDto>();
+
+    private bool inc_IncludeUnverified = false;
+    private bool inc_SelectedSingle = true;
+    private bool inc_SelectedHalf = false;
+    private bool inc_SelectedTwin = false;
+    private bool inc_SelectedHalfTwin = false;
+    private bool inc_SelectedTriple = false;
+    private double[] inc_RangeDiameter = { 7, 11 };
+    private double[] inc_RangeMassPerUnitLength = { 30, 80 };
+    private double[] inc_RangeSheathPercentage = { 0.25, 0.6 };
+    private bool inc_IncRangeSheathPercentage = false;
+
+    private List<BrandDto> inc_BrandListChoose = new List<BrandDto>();
+    private List<int> inc_BrandListSelectedId = new List<int>();
+    private List<RopeDto> inc_RopeListChoose = new List<RopeDto>();
+    private List<int> inc_RopeListSelectedId = new List<int>();
+
+    private bool inc_OptionA = true;
+
+    //**********************************************************************************************************************************************************************************************
+    //DeclarationsEND
+    //**********************************************************************************************************************************************************************************************
+
+
+    protected override void OnInitialized()
+    {
+        inc_BrandListChoose = brandService.GetAllBrands();
+        GetRopeListChoose();
+
+        ProcessRopeInclusion();
+    }
+
+    private void GetRopeListChoose()
+    {
+        if (inc_IncludeUnverified)
+            inc_RopeListChoose = ropeService.GetRopes_All();
+        else
+            inc_RopeListChoose = ropeService.GetRopes_Verified(true);
+    }
+
+    private void inc_IncludeUnverifiedChanged()
+    {
+        GetRopeListChoose();
+        ProcessRopeInclusion();
+    }
+
+    private async void ProcessRopeInclusion()
+    {
+        RopeFilterADto filter = new RopeFilterADto();
+        filter.IncludeUnverified = inc_IncludeUnverified;
+
+        if (inc_OptionA)
+        {
+            filter.Categorys = GetIncCategorys();
+            filter.BrandIds = inc_BrandListSelectedId;
+            filter.DiameterMin = inc_RangeDiameter[0];
+            filter.DiameterMax = inc_RangeDiameter[1];
+            filter.MassPerUnitLengthMin = inc_RangeMassPerUnitLength[0];
+            filter.MassPerUnitLengthMax = inc_RangeMassPerUnitLength[1];
+            if (inc_IncRangeSheathPercentage)
+            {
+                filter.SheathPercentageMin = inc_RangeSheathPercentage[0] * 100;
+                filter.SheathPercentageMax = inc_RangeSheathPercentage[1] * 100;
+            }
+        }
+        else
+        {
+            filter.RopeIds = inc_RopeListSelectedId;
+        }
+
+        ropes = ropeService.GetRopes_FilteredA(filter);
+
+        await RopeSelectionChanged.InvokeAsync(ropes);
+    }
+
+    private List<Category> GetIncCategorys()
+    {
+        List<Category> categoryList = new List<Category>();
+        if (inc_SelectedSingle)
+            categoryList.Add(Category.Single);
+        if (inc_SelectedHalf)
+            categoryList.Add(Category.Half);
+        if (inc_SelectedTwin)
+            categoryList.Add(Category.Twin);
+        if (inc_SelectedHalfTwin)
+            categoryList.Add(Category.HalfTwin);
+        if (inc_SelectedTriple)
+            categoryList.Add(Category.Triple);
+
+        return categoryList;
+    }
+    private void ToggleRopeSelectionMode()
+    {
+        if (inc_OptionA)
+        {
+            inc_OptionA = false;
+        }
+        else
+        {
+            inc_OptionA = true;
+        }
+    }
+}
+
+<style>
+    .front-5 {
+        position: relative;
+        z-index: 5;
+    }
+
+    .front-4 {
+        position: relative;
+        z-index: 5;
+    }
+    .front-3 {
+        position: relative;
+        z-index: 5;
+    }
+    .front-2 {
+        position: relative;
+        z-index: 5;
+    }
+
+    .front-1 {
+        position: relative;
+        z-index: 5;
+    }
+
+    .front-0 {
+        position: relative;
+        z-index: 0;
+    }
+
+    .behind-5 {
+        position: relative;
+        z-index: -5;
+    }
+
+</style>

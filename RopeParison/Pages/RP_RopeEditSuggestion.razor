@@ -1,0 +1,33 @@
+﻿@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using System.Linq
+
+
+@if (item != null)
+{
+    <div class="form-group">
+        <label for="" class="rope-add-label"></label>
+        <span class="rope-edit-suggestion">@item</span>
+        @if (approveEdit)
+        {
+            <SfButton @onclick="() => ApproveEditSuggestion.InvokeAsync()" CssClass="e-flat" IsPrimary="true" Content="Approve"></SfButton>
+            <SfButton @onclick="() => DeleteEditSuggestion.InvokeAsync()" CssClass="e-flat" IsPrimary="true" Content="Reject"></SfButton>
+        }
+    </div>
+}
+
+
+
+@code {
+    [Parameter]
+    public dynamic? item { get; set; }
+
+    [Parameter]
+    public bool approveEdit { get; set; }
+
+    [Parameter]
+    public EventCallback ApproveEditSuggestion { get; set; }
+
+    [Parameter]
+    public EventCallback DeleteEditSuggestion { get; set; }
+}

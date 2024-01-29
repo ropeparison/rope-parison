@@ -1,0 +1,408 @@
+﻿@page "/"
+@page "/ropes"
+@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using System.Linq
+
+
+
+
+
+<SfMediaQuery @ref="mediaQuery" @bind-ActiveBreakPoint="activeBreakpoint"></SfMediaQuery>
+@if (activeBreakpoint == "Small")
+{
+    isSmall = true;
+    bool isInit = false;
+    SetSidebarSettings(isInit);
+    SetGridSettings(isInit);
+}
+//else if (activeBreakpoint == "Medium")
+else
+{
+    isSmall = false;
+    bool isInit = false;
+    SetSidebarSettings(isInit);
+    SetGridSettings(isInit);
+}
+
+<SfSidebar class="default-sidebar sidebar-width"
+    Width="250px"
+    Target=".maincontent"
+    CloseOnDocumentClick="@sidebarCloseOnDocumentClick"
+    EnableGestures="@sidebarEnableGestures"
+    ShowBackdrop="@sidebarShowBackdrop"
+    Type="@sidebarType"
+    @bind-IsOpen="sidebarOpen"
+    Changed="@SidebarOpenCloseChanged">
+        
+    <ChildContent>
+
+        <div class="title-header">
+            <div class="inline-element">Options </div>
+            <SfButton CssClass="right e-flat e-round" @onclick="CloseSidebar" IconCss="fa-solid fa-xmark"></SfButton>
+        </div>
+
+        <RP_RopeSelection RopeSelectionChanged="@OnRopeSelectionChanged"></RP_RopeSelection>
+
+        <RP_ColumnVisibility ColumnVisibilityChanged="@OnColumnVisibilityChanged"></RP_ColumnVisibility>
+
+    </ChildContent>
+</SfSidebar>
+
+<div class="maincontent">
+    <div><!--This div seems pointless, but is the only way so far to make the sidebar push feature succesfully push all content in the target div. It only seems to push the first div inside the target div.-->
+        <div>
+            <h3 class="inline-element">Rope List</h3>
+            <SfButton IsToggle="true" @onclick="AdvancedOptionsToggle" CssClass="right e-flat" IsPrimary="true" Content="@advancedOptionsToggleContent"></SfButton>
+            <SfButton IsToggle="true" @onclick="SidebarToggle" CssClass="right e-flat" IsPrimary="true" Content="@sidebarToggleContent"></SfButton>
+            
+        </div>
+
+        <div class="grid-dimensions">
+            @if (ropes != null)
+            {
+                <SfGrid
+                    @ref="gridRopes"
+                    DataSource="@ropes"
+                    ShowColumnChooser="@gridShowColumnChooser"
+                    Toolbar="@gridToolbarItems"
+                    AllowFiltering="@gridAllowFiltering"
+                    AllowPaging="true"
+                    AllowSorting="true"
+                    AllowResizing="true"
+                    AllowReordering="true"
+                    AllowSelection="true"
+                    EnableAdaptiveUI="@isSmall"
+                    AllowTextWrap="true"
+                    EnableStickyHeader="true"
+                    Width="@gridWidth"
+                    Height="100%"
+                    RowRenderingMode="@gridRowDirection">
+                    <!--Height="80vh"-->
+
+                    <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Excel"></GridFilterSettings>
+                    <GridPageSettings PageCount="5"></GridPageSettings>
+
+                    <GridColumns>
+                        <!--<GridColumn Field="@nameof(RopeDto.RopeId)" HeaderText="@rPrIn.RopeId.NameUnit" Visible="@rPrIn.RopeId.Visible" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />-->
+                        <GridColumn Field="Name" HeaderText="@rPrIn.Name.NameUnit" Visible="@rPrIn.Name.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="Brand.Name" HeaderText="@rPrIn.Brand.NameUnit" Visible="@rPrIn.Brand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="Category.DisplayName" HeaderText="@rPrIn.Category.NameUnit" Visible="@rPrIn.Category.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+                        <GridColumn Field="Diameter" HeaderText="@rPrIn.Diameter.NameUnit" Visible="@rPrIn.Diameter.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.MassPerUnitLength)" HeaderText="@rPrIn.MassPerUnitLength.NameUnit" Format="##0.##" Visible="@rPrIn.MassPerUnitLength.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="RopeCalculatedParameterSet.Area" HeaderText="@rPrIn.RoCaPaSePrIn.Area.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.Area.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.SheathPercentage)" HeaderText="@rPrIn.SheathPercentage.NameUnit" Visible="@rPrIn.SheathPercentage.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="RopeCalculatedParameterSet.SheathArea" HeaderText="@rPrIn.RoCaPaSePrIn.SheathArea.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.SheathArea.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="RopeCalculatedParameterSet.SheathThickness" HeaderText="@rPrIn.RoCaPaSePrIn.SheathThickness.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.SheathThickness.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="RopeCalculatedParameterSet.CoreArea" HeaderText="@rPrIn.RoCaPaSePrIn.CoreArea.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.CoreArea.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="RopeCalculatedParameterSet.CoreDiameter" HeaderText="@rPrIn.RoCaPaSePrIn.CoreDiameter.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.CoreDiameter.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="RopeCalculatedParameterSet.Density" HeaderText="@rPrIn.RoCaPaSePrIn.Density.NameUnit" Format="##0.##" Visible="@rPrIn.RoCaPaSePrIn.Density.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+                        <GridColumn Field="@nameof(RopeDto.ImpactForce55kgOneStrand)" HeaderText="@rPrIn.ImpactForce55kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.ImpactForce55kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.ImpactForce80kgOneStrand)" HeaderText="@rPrIn.ImpactForce80kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.ImpactForce80kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.ImpactForce80kgTwoStrand)" HeaderText="@rPrIn.ImpactForce80kgTwoStrand.NameUnit" Format="##0.##" Visible="@rPrIn.ImpactForce80kgTwoStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+                        <GridColumn Field="@nameof(RopeDto.StaticElongation80kgOneStrand)" HeaderText="@rPrIn.StaticElongation80kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.StaticElongation80kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.StaticElongation80kgTwoStrand)" HeaderText="@rPrIn.StaticElongation80kgTwoStrand.NameUnit" Format="##0.##" Visible="@rPrIn.StaticElongation80kgTwoStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+                        <GridColumn Field="@nameof(RopeDto.DynamicElongation55kgOneStrand)" HeaderText="@rPrIn.DynamicElongation55kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DynamicElongation55kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.DynamicElongation80kgOneStrand)" HeaderText="@rPrIn.DynamicElongation80kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DynamicElongation80kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.DynamicElongation80kgTwoStrand)" HeaderText="@rPrIn.DynamicElongation80kgTwoStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DynamicElongation80kgTwoStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+                        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak55kgOneStrand)" HeaderText="@rPrIn.DropsBeforeBreak55kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DropsBeforeBreak55kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak80kgOneStrand)" HeaderText="@rPrIn.DropsBeforeBreak80kgOneStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DropsBeforeBreak80kgOneStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        <GridColumn Field="@nameof(RopeDto.DropsBeforeBreak80kgTwoStrand)" HeaderText="@rPrIn.DropsBeforeBreak80kgTwoStrand.NameUnit" Format="##0.##" Visible="@rPrIn.DropsBeforeBreak80kgTwoStrand.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+
+                        <GridColumn Field="@nameof(RopeDto.SheathSlippage)" HeaderText="@rPrIn.SheathSlippage.NameUnit" Visible="@rPrIn.SheathSlippage.Visible" CustomAttributes="@gridColumnCustomAttributes_Header" MinWidth="@GRID_COL_WIDTH_MIN" MaxWidth="@gridColWidthMax" />
+                        
+                    </GridColumns>
+                </SfGrid>
+            }
+        </div>
+
+        <div>
+            @if (!isSmall)
+            {
+                <p>Use ctrl+click to sort by multiple columns, shift+click clears the sort for that solumn.</p>
+            }
+            else
+            {
+                <p>Mobile users may wish to view data in <a class="clickable-text" @onclick="@(x => SetGridRowDirectionVertical())">vertical mode</a> rather than <a class="clickable-text" @onclick="@(x => SetGridRowDirectionHorizontal())">horizontal mode</a>. Viewing this page on a larger monitor is recommended - it is quite a large table.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    //-----------------------------------------------
+    //Services
+    //-----------------------------------------------
+    [Inject]
+    private IRopeService ropeService { get; set; }
+    //-----------------------------------------------
+    //ServicesEND
+    //-----------------------------------------------
+
+    SfMediaQuery mediaQuery = new SfMediaQuery();
+    private string activeBreakpoint = "";
+    private bool isSmall = false; //mobile
+
+    //-------------------------------------------------------------
+    //Data
+    //-------------------------------------------------------------
+    private RopePropertyInformationsDto rPrIn = new RopePropertyInformationsDto();
+    private List<RopeDto> ropes = new List<RopeDto>();
+    //-------------------------------------------------------------
+    //DataEND
+    //-------------------------------------------------------------
+
+    //---------------------------------------------------------------------------------
+    //Grid
+    //---------------------------------------------------------------------------------
+    private SfGrid<RopeDto> gridRopes = new SfGrid<RopeDto>();
+    private bool gridShowColumnChooser = false;
+    private bool gridAllowFiltering = false;
+    private static readonly string GRID_COL_WIDTH_MIN = "50px";
+    private static readonly string GRID_COL_WIDTH_MAX_LARGE = "150px";
+    private static readonly string GRID_COL_WIDTH_MAX_SMALL = "120px";
+    private string gridColWidthMax = GRID_COL_WIDTH_MAX_LARGE;
+
+    private static readonly string GRID_WIDTH_SMALL = "100vw"; //Using vw the datagrid horizontal scrollbar automatically triggers, it does not appear to automatically trigger using %, just compresses the columns.
+    private static readonly string GRID_WIDTH_LARGE = "100%";
+    private string gridWidth = GRID_WIDTH_LARGE;
+
+    private Syncfusion.Blazor.Grids.RowDirection gridRowDirection = RowDirection.Horizontal;
+
+    public string[] gridToolbarItems;
+    private Dictionary<string, object> gridColumnCustomAttributes_Header = new Dictionary<string, object>();
+    private Dictionary<string, object> gridColumnCustomAttributes_HeaderHorizontal = new Dictionary<string, object>();
+    private Dictionary<string, object> gridColumnCustomAttributes_HeaderVertical = new Dictionary<string, object>() { { "class", "vertical-header" } };
+    //---------------------------------------------------------------------------------
+    //GridEND
+    //---------------------------------------------------------------------------------
+
+    //------------------------------------------------------------------------------------
+    //Sidebar
+    //------------------------------------------------------------------------------------
+    private bool sidebarOpen = false;
+    private bool sidebarCloseOnDocumentClick = false;
+    private bool sidebarEnableGestures = false; //EnableGestures is things like swipe to close. Swipe to close is annoying on desktop when adjusting range sliders.
+    private bool sidebarShowBackdrop = false;
+    private SidebarType sidebarType = SidebarType.Auto;
+
+    private static readonly string SHOW_OPTIONS = "Show Options";
+    private static readonly string HIDE_OPTIONS = "Hide Options";
+    private static readonly string OPTIONS = "Options";
+    private string showOptions = "";
+    private string hideOptions = "";
+    private string sidebarToggleContent = OPTIONS;
+    //------------------------------------------------------------------------------------
+    //SidebarEND
+    //------------------------------------------------------------------------------------
+
+    private static readonly string SHOW_ADVANCED_OPTIONS = "Show Advanced Options";
+    private static readonly string HIDE_ADVANCED_OPTIONS = "Hide Advanced Options";
+    private string advancedOptionsToggleContent = SHOW_ADVANCED_OPTIONS;
+    private bool showAdvancedOptions = false;
+
+    //**********************************************************************************************************************************************************************************************
+    //DeclarationsEND
+    //**********************************************************************************************************************************************************************************************
+
+
+    protected override void OnInitialized()
+    {
+        bool isInit = true;
+        SetSidebarSettings(isInit);
+        SetGridSettings(isInit);
+    }
+
+
+    //---------------------------------------------------------------------------------
+    //Grid
+    //---------------------------------------------------------------------------------
+    private void SetGridSettings(bool isInit)
+    {
+        if (showAdvancedOptions)
+        {
+            gridToolbarItems = new string[] { "ColumnChooser" };
+        }
+        else
+        {
+            gridToolbarItems = null;
+        }
+
+        SetGridWidth();
+        if (gridRopes != null)
+        {
+            //gridRopes.AutoFitColumnsAsync();
+            gridRopes.Refresh();
+        }
+    }
+    private void SetGridWidth()
+    {
+        if (isSmall)
+        {
+            gridWidth = GRID_WIDTH_SMALL;
+            gridColWidthMax = GRID_COL_WIDTH_MAX_SMALL;
+        }
+        else
+        {
+            gridWidth = GRID_WIDTH_LARGE;
+            gridColWidthMax = GRID_COL_WIDTH_MAX_LARGE;
+        }
+    }
+    private void SetGridRowDirectionVertical()
+    {
+        gridRowDirection = RowDirection.Vertical;
+    }
+    private void SetGridRowDirectionHorizontal()
+    {
+        gridRowDirection = RowDirection.Horizontal;
+    }
+    //---------------------------------------------------------------------------------
+    //GridEND
+    //---------------------------------------------------------------------------------
+
+    //---------------------------------------------------------------------------------
+    //Sidebar
+    //---------------------------------------------------------------------------------
+    private void SetSidebarSettings(bool isInit)
+    {
+        if (isSmall)
+        {
+            if (isInit)
+            {
+                sidebarOpen = true; //Decided to open with sidebar in small mode.
+            }
+            sidebarCloseOnDocumentClick = true;
+            sidebarEnableGestures = true;
+            sidebarShowBackdrop = true;
+            sidebarType = SidebarType.Over; //For some reason changing sidebar type causes sidebar to close if it's open. No resolution as yet.
+            showOptions = OPTIONS;
+            hideOptions = OPTIONS;
+            sidebarToggleContent = showOptions;
+        }
+        else
+        {
+            if (isInit)
+            {
+                sidebarOpen = true;
+            }
+            sidebarCloseOnDocumentClick = false;
+            sidebarEnableGestures = false;
+            sidebarShowBackdrop = false;
+            sidebarType = SidebarType.Push;
+            showOptions = SHOW_OPTIONS;
+            hideOptions = HIDE_OPTIONS;
+
+            /*if (sidebarOpen){
+            sidebarToggleContent = hideOptions;
+            }
+            else
+            {
+            sidebarToggleContent = showOptions;
+        }*/
+        }
+
+        if (gridRopes != null)
+        {
+            //gridRopes.AutoFitColumnsAsync();
+            gridRopes.Refresh();
+        }
+    }
+
+    private void SidebarToggle()
+    {
+        if (sidebarOpen)
+        {
+            sidebarOpen = false;
+        }
+        else
+        {
+            sidebarOpen = true;
+        }
+    }
+
+    public void CloseSidebar()
+    {
+        sidebarOpen = false;
+    }
+
+    public void SidebarOpenCloseChanged()
+    {
+        if (sidebarOpen)
+        {
+            sidebarToggleContent = hideOptions;
+        }
+        else
+        {
+            sidebarToggleContent = showOptions;
+        }
+    }
+    //---------------------------------------------------------------------------------
+    //SidebarEND
+    //---------------------------------------------------------------------------------
+
+    private void AdvancedOptionsToggle()
+    {
+        if (showAdvancedOptions)
+        {
+            showAdvancedOptions = false;
+            gridAllowFiltering = false;
+            gridShowColumnChooser = false;
+            advancedOptionsToggleContent = SHOW_ADVANCED_OPTIONS;
+        }
+        else
+        {
+            showAdvancedOptions = true;
+            gridAllowFiltering = true;
+            gridShowColumnChooser = true;
+            advancedOptionsToggleContent = HIDE_ADVANCED_OPTIONS;
+        }
+
+        bool isInit = false;
+        SetGridSettings(isInit);
+    }
+
+    //----------------------------------------------------------------------------------
+    //ColumnVisibility
+    //----------------------------------------------------------------------------------
+    private void OnColumnVisibilityChanged(RopePropertyInformationsDto ropePropertyInformations)
+    {
+        rPrIn = ropePropertyInformations;
+
+        if (gridRopes != null)
+        {
+            //gridRopes.AutoFitColumnsAsync();
+            gridRopes.Refresh();
+        }
+    }
+    //----------------------------------------------------------------------------------
+    //ColumnVisibilityEND
+    //----------------------------------------------------------------------------------
+
+    //----------------------------------------------------------------------------------
+    //RopeInclusion
+    //----------------------------------------------------------------------------------
+    private void OnRopeSelectionChanged(List<RopeDto> ropeSelection)
+    {
+        ropes = ropeSelection;
+
+        if (gridRopes != null)
+        {
+            //gridRopes.AutoFitColumnsAsync();
+            gridRopes.Refresh();
+        }
+    }
+    //----------------------------------------------------------------------------------
+    //RopeInclusionEND
+    //----------------------------------------------------------------------------------
+}
+
+<style>
+
+
+
+</style>

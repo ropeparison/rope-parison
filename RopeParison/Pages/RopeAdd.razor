@@ -1,0 +1,1356 @@
+﻿@page "/addRope"
+@page "/editRope/{editInt:int?}"
+@page "/editRope/{editInt:int?}/{ropeId:int?}"
+@page "/verifyRope/{verifyInt:int?}"
+@page "/verifyRope/{verifyInt:int?}/{ropeId:int?}"
+@page "/approveEditRope/{approveEditInt:int?}"
+@page "/approveEditRope/{approveEditInt:int?}/{ropeId:int?}"
+@page "/deleteRope/{deleteInt:int?}"
+@page "/deleteRope/{deleteInt:int?}/{ropeId:int?}"
+@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using Syncfusion.Blazor.Buttons;
+@using Syncfusion.Blazor.DropDowns;
+@using Syncfusion.Blazor.Inputs;
+<!--@using Syncfusion.Blazor.Forms;-->
+
+<SfToast ID="toast_default" @ref="toastObj" CssClass="@toastCss" Title="@toastTitle" Content="@toastContent" Timeout="5000" ShowCloseButton="true">
+    <ToastPosition X="Right"></ToastPosition>
+</SfToast>
+
+
+<div id="wrapper" class="maincontent">
+    
+    @if (delete)
+    {
+        <h3>Delete Rope</h3>
+    }
+    else if (approveEdit)
+    {
+        <h3>Process Rope Edit Suggestions</h3>
+    }
+    else if (verify)
+    {
+        <h3>Verify Rope</h3>
+    }
+    else if (edit)
+    {
+        <h3>Edit Rope</h3>
+        <p>If you think a rope's data is incorrect please submit a rope edit suggestion here.</p>
+        <p>Edit suggestions are not immediately applied, they will be accepted or rejected after a check by an admin.</p>
+    }
+    else if (add)
+    {
+        <h3>Add Rope</h3>
+        <p>Add new ropes to RopeParison here.</p>
+        <p>Ropes added here are 'unverified' ropes until checked and marked as verified by an admin.</p>
+        <p>Unverified ropes are not included in the ropes table or graphs by default, but can be included using the 'Include Unverified Ropes' checkbox in the Rope Selector.</p>
+    }
+    <hr/>
+
+    @if (edit || verify || approveEdit || delete)
+    {
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label for="rope" class="rope-add-label">Rope</label>
+                    <SfDropDownList @ref="ropeDropdown" @bind-Value="ropeId_Selected" class="form-control" id="rope"
+                                Width="250px"
+                                DataSource="ropes"
+                                Placeholder="Rope"
+                                AllowFiltering="true">
+                        <DropDownListFieldSettings Value="RopeId" Text="Name"></DropDownListFieldSettings>
+                        <DropDownListEvents TItem="RopeDto" TValue="int" ValueChange="@RopeUpdated"></DropDownListEvents>
+                    </SfDropDownList>
+                </div>
+            </div>
+            <div class="col-2">
+                @if (verify || approveEdit || delete)
+                {
+                    <!--<span>Password</span>-->
+                    <SfTextBox @ref="@passwordTextBox" Created="@passwordTextBoxOnCreate" @bind-Value="@password" Placeholder="Password" Width="200px" Type="@passwordTextBox_InputType" Autocomplete="AutoComplete.Off" />
+                }
+            </div>
+        </div>
+        <hr>
+    }
+
+    <EditForm EditContext="@editContext" OnSubmit="FormSubmit">
+        <FluentValidationValidator /> <!--TValidator="RopeDtoValidator"-->
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="category" class="rope-add-label">Category</label>
+            <SfDropDownList @bind-Value="rope.Category" class="form-control" id="category"
+                            Width="250px"
+                            DataSource="categorys"
+                            Placeholder="Category"
+                            Enabled="add">
+                <DropDownListFieldSettings Text="DisplayName"></DropDownListFieldSettings>
+            </SfDropDownList>
+            <ValidationMessage For="@(() => rope.Category)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group">
+                <label for="category" class="rope-add-label"></label>
+                <SfDropDownList @bind-Value="ropeEdit.Category" class="form-control" id="category"
+                                Width="250px"
+                                DataSource="categorys"
+                                Placeholder="Category"
+                                Enabled="edit && ropeEdit?.RopeId > 0 && false"> <!-- For now not allowed to edit rope category. -->
+                    <DropDownListFieldSettings Text="DisplayName"></DropDownListFieldSettings>
+                </SfDropDownList>
+                <ValidationMessage For="@(() => ropeEdit.Category)"></ValidationMessage>
+            </div>
+            <div class="form-group">
+                <label for="" class="rope-add-label"></label>
+                <span>Category editing is not yet supported.</span>
+            </div>
+        }
+        @if (edit || approveEdit)
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.Category != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.Category != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.Category.DisplayName" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group">
+            <label for="name" class="rope-add-label">Name</label>
+            <SfTextBox @bind-Value="rope.Name" class="form-control" id="name"
+                Width="250px"
+                Placeholder="Name"
+                Enabled="add">
+            </SfTextBox>
+            <ValidationMessage For="@(() => rope.Name)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group">
+                <label for="name" class="rope-add-label"></label>
+                <SfTextBox @bind-Value="ropeEdit.Name" class="form-control" id="name"
+                           Width="250px"
+                           Placeholder="Name"
+                       Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfTextBox>
+                <ValidationMessage For="@(() => ropeEdit.Name)"></ValidationMessage>
+            </div>
+        }
+        @if (edit || approveEdit)
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.Name != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.Name != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.Name" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group">
+            <label for="brand" class="rope-add-label">Brand</label>
+            <SfDropDownList @bind-Value="rope.Brand" class="form-control" id="brand"
+                Width="250px"
+                DataSource="brands"
+                Placeholder="Brand"
+                Enabled="add">
+                <DropDownListFieldSettings Text="Name"></DropDownListFieldSettings>
+            </SfDropDownList>
+            <ValidationMessage For="@(() => rope.Brand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group">
+                <label for="brand" class="rope-add-label"></label>
+                <SfDropDownList @bind-Value="ropeEdit.Brand" class="form-control" id="brand"
+                                Width="250px"
+                                DataSource="brands"
+                                Placeholder="Brand"
+                            Enabled="edit && ropeEdit?.RopeId > 0">
+                    <DropDownListFieldSettings Text="Name"></DropDownListFieldSettings>
+                </SfDropDownList>
+                <ValidationMessage For="@(() => ropeEdit.Brand)"></ValidationMessage>
+            </div>
+        }
+        @if (edit || approveEdit)
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.Brand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.Brand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.Brand.Name" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group">
+            <label for="diameter" class="rope-add-label">Diameter (mm)</label>
+            <SfNumericTextBox @bind-Value="rope.Diameter" class="form-control" id="diameter"
+                Width="250px"
+                Placeholder="Diameter (mm)"
+                Step="0.1"
+                Format="0.0 'mm'"
+                Decimals="1"
+                Enabled="add">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.Diameter)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group">
+                <label for="diameter" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.Diameter" class="form-control" id="diameter"
+                                  Width="250px"
+                                  Placeholder="Diameter (mm)"
+                                  Step="0.1"
+                                  Format="0.0 'mm'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.Diameter)"></ValidationMessage>
+                
+            </div>
+        }
+        @if (edit || approveEdit)
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.Diameter != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.Diameter != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.Diameter" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group">
+            <label for="massPerUnitLength" class="rope-add-label">Weight (g/m)</label>
+            <SfNumericTextBox @bind-Value="rope.MassPerUnitLength" class="form-control" id="massPerUnitLength"
+                Width="250px"
+                Placeholder="Mass/Length (g/m)"
+                Step="0.1"
+                Format="0.0 'g/m'"
+                Decimals="1"
+                Enabled="add">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.MassPerUnitLength)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group">
+                <label for="massPerUnitLength" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.MassPerUnitLength" class="form-control" id="massPerUnitLength"
+                                  Width="250px"
+                                  Placeholder="Mass/Length (g/m)"
+                                  Step="0.1"
+                                  Format="0.0 'g/m'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.MassPerUnitLength)"></ValidationMessage>
+            </div>
+        }
+        @if (edit || approveEdit)
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.MassPerUnitLength != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.MassPerUnitLength != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.MassPerUnitLength" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group">
+            <label for="sheathPercentage" class="rope-add-label">Sheath Percentage (%)</label>
+            <SfNumericTextBox @bind-Value="rope.SheathPercentage" class="form-control" id="sheathPercentage"
+                              Width="250px"
+                              Placeholder="Sheath Percentage (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="add">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.SheathPercentage)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group">
+                <label for="sheathPercentage" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.SheathPercentage" class="form-control" id="sheathPercentage"
+                                  Width="250px"
+                                  Placeholder="Sheath Percentage (%)"
+                                  Step="0.1"
+                                  Format="0.0 '%'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.SheathPercentage)"></ValidationMessage>
+            </div>
+        }
+        @if (edit || approveEdit)
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.SheathPercentage != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.SheathPercentage != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.SheathPercentage" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group">
+            <label for="sheathSlippage" class="rope-add-label">Sheath Slippage (%)</label>
+            <SfNumericTextBox @bind-Value="rope.SheathSlippage" class="form-control" id="sheathSlippage"
+                              Width="250px"
+                              Placeholder="Sheath Slippage (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="add">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.SheathSlippage)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group">
+                <label for="sheathSlippage" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.SheathSlippage" class="form-control" id="sheathSlippage"
+                                  Width="250px"
+                                  Placeholder="Sheath Slippage (%)"
+                                  Step="0.1"
+                                  Format="0.0 '%'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.SheathSlippage)"></ValidationMessage>
+            </div>
+        }
+        @if (edit || approveEdit)
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.SheathSlippage != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.SheathSlippage != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.SheathSlippage" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <!-- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+        <!--<span>Impact Force</span>
+        <br />-->
+
+        <div class="form-group" hidden="@Hide_ImpactForce55kgOneStrand()">
+            <label for="impactForce55kgOneStrand" class="rope-add-label">Impact Force [55kg, One Strand] (kN)</label>
+            <SfNumericTextBox @bind-Value="rope.ImpactForce55kgOneStrand" class="form-control" id="impactForce55kgOneStrand"
+                              Width="250px"
+                              Placeholder="Impact Force (55kg, One Strand) (kN)"
+                              Step="0.1"
+                              Format="0.0 'kN'"
+                              Decimals="1"
+                              Enabled="add">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.ImpactForce55kgOneStrand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group" hidden="@Hide_ImpactForce55kgOneStrand()">
+                <label for="impactForce55kgOneStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.ImpactForce55kgOneStrand" class="form-control" id="impactForce55kgOneStrand"
+                                  Width="250px"
+                                  Placeholder="Impact Force (55kg, One Strand) (kN)"
+                                  Step="0.1"
+                                  Format="0.0 'kN'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.ImpactForce55kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (!Hide_ImpactForce55kgOneStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.ImpactForce55kgOneStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.ImpactForce55kgOneStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.ImpactForce55kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group" hidden="@Hide_ImpactForce80kgOneStrand()">
+            <label for="impactForce80kgOneStrand" class="rope-add-label">Impact Force [80kg, One Strand] (kN)</label>
+            <SfNumericTextBox @bind-Value="rope.ImpactForce80kgOneStrand" class="form-control" id="impactForce80kgOneStrand"
+                            Width="250px"
+                            Placeholder="Impact Force (80kg, One Strand) (kN)"
+                            Step="0.1"
+                            Format="0.0 'kN'"
+                            Decimals="1"
+                            Enabled="add">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.ImpactForce80kgOneStrand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group" hidden="@Hide_ImpactForce80kgOneStrand()">
+                <label for="impactForce80kgOneStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.ImpactForce80kgOneStrand" class="form-control" id="impactForce80kgOneStrand"
+                                  Width="250px"
+                                  Placeholder="Impact Force (80kg, One Strand) (kN)"
+                                  Step="0.1"
+                                  Format="0.0 'kN'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.ImpactForce80kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (!Hide_ImpactForce80kgOneStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.ImpactForce80kgOneStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.ImpactForce80kgOneStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.ImpactForce80kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group" hidden="@Hide_ImpactForce80kgTwoStrand()">
+            <label for="impactForce80kgTwoStrand" class="rope-add-label">Impact Force [80kg, Two Strand] (kN)</label>
+            <SfNumericTextBox @bind-Value="rope.ImpactForce80kgTwoStrand" class="form-control" id="impactForce80kgTwoStrand"
+                              Width="250px"
+                              Placeholder="Impact Force (80kg, Two Strand) (kN)"
+                              Step="0.1"
+                              Format="0.0 'kN'"
+                              Decimals="1"
+                              Enabled="add">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.ImpactForce80kgTwoStrand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group" hidden="@Hide_ImpactForce80kgTwoStrand()">
+                <label for="impactForce80kgTwoStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.ImpactForce80kgTwoStrand" class="form-control" id="impactForce80kgTwoStrand"
+                                  Width="250px"
+                                  Placeholder="Impact Force (80kg, Two Strand) (kN)"
+                                  Step="0.1"
+                                  Format="0.0 'kN'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.ImpactForce80kgTwoStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (!Hide_ImpactForce80kgTwoStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.ImpactForce80kgTwoStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.ImpactForce80kgTwoStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.ImpactForce80kgTwoStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <!-- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+        <!--<span>Static Elongation</span>
+        <br />-->
+
+        <div class="form-group" hidden="@Hide_StaticElongation80kgOneStrand()">
+            <label for="staticElongation80kgOneStrand" class="rope-add-label">Static Elongation [80kg, One Strand] (%)</label>
+            <SfNumericTextBox @bind-Value="rope.StaticElongation80kgOneStrand" class="form-control" id="staticElongation80kgOneStrand"
+                              Width="250px"
+                              Placeholder="Static Elongation (80kg, One Strand) (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="add">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.StaticElongation80kgOneStrand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group" hidden="@Hide_StaticElongation80kgOneStrand()">
+                <label for="staticElongation80kgOneStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.StaticElongation80kgOneStrand" class="form-control" id="staticElongation80kgOneStrand"
+                                  Width="250px"
+                                  Placeholder="Static Elongation (80kg, One Strand) (%)"
+                                  Step="0.1"
+                                  Format="0.0 '%'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.StaticElongation80kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (!Hide_StaticElongation80kgOneStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.StaticElongation80kgOneStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.StaticElongation80kgOneStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.StaticElongation80kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group" hidden="@Hide_StaticElongation80kgTwoStrand()">
+            <label for="staticElongation80kgTwoStrand" class="rope-add-label">Static Elongation [80kg, Two Strand] (%)</label>
+            <SfNumericTextBox @bind-Value="rope.StaticElongation80kgTwoStrand" class="form-control" id="staticElongation80kgTwoStrand"
+                              Width="250px"
+                              Placeholder="Static Elongation (80kg, Two Strand) (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="add">
+                          </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.StaticElongation80kgTwoStrand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group" hidden="@Hide_StaticElongation80kgTwoStrand()">
+                <label for="staticElongation80kgTwoStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.StaticElongation80kgTwoStrand" class="form-control" id="staticElongation80kgTwoStrand"
+                                  Width="250px"
+                                  Placeholder="Static Elongation (80kg, Two Strand) (%)"
+                                  Step="0.1"
+                                  Format="0.0 '%'"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.StaticElongation80kgTwoStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (!Hide_StaticElongation80kgTwoStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.StaticElongation80kgTwoStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.StaticElongation80kgTwoStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.StaticElongation80kgTwoStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <!-- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+        <!--<span>Dynamic Elongation</span>
+        <br />-->
+
+        @if (Show_DynamicElongation55kgOneStrand())
+        {
+            <div class="form-group">
+                <label for="dynamicElongation55kgOneStrand" class="rope-add-label">Dynamic Elongation [55kg, One Strand] (%)</label>
+                <SfNumericTextBox @bind-Value="rope.DynamicElongation55kgOneStrand" class="form-control" id="dynamicElongation55kgOneStrand"
+                              Width="250px"
+                              Placeholder="Dynamic Elongation (55kg, One Strand) (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="add">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => rope.DynamicElongation55kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (Show_DynamicElongation55kgOneStrand() && @edit)
+        {
+            <div class="form-group">
+                <label for="dynamicElongation55kgOneStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.DynamicElongation55kgOneStrand" class="form-control" id="dynamicElongation55kgOneStrand"
+                              Width="250px"
+                              Placeholder="Dynamic Elongation (55kg, One Strand) (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.DynamicElongation55kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (Show_DynamicElongation55kgOneStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.DynamicElongation55kgOneStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DynamicElongation55kgOneStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.DynamicElongation55kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        @if (Show_DynamicElongation80kgOneStrand())
+        {
+            <div class="form-group">
+                <label for="dynamicElongation80kgOneStrand" class="rope-add-label">Dynamic Elongation [80kg, One Strand] (%)</label>
+                <SfNumericTextBox @bind-Value="rope.DynamicElongation80kgOneStrand" class="form-control" id="dynamicElongation80kgOneStrand"
+                            Width="250px"
+                            Placeholder="Dynamic Elongation (80kg, One Strand) (%)"
+                            Step="0.1"
+                            Format="0.0 '%'"
+                            Decimals="1"
+                            Enabled="add">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => rope.DynamicElongation80kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (Show_DynamicElongation80kgOneStrand() && @edit)
+        {
+            <div class="form-group">
+                <label for="dynamicElongation80kgOneStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.DynamicElongation80kgOneStrand" class="form-control" id="dynamicElongation80kgOneStrand"
+                              Width="250px"
+                              Placeholder="Dynamic Elongation (80kg, One Strand) (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.DynamicElongation80kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (Show_DynamicElongation80kgOneStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.DynamicElongation80kgOneStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DynamicElongation80kgOneStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.DynamicElongation80kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        @if (Show_DynamicElongation80kgTwoStrand())
+        {
+            <div class="form-group">
+                <label for="dynamicElongation80kgTwoStrand" class="rope-add-label">Dynamic Elongation [80kg, Two Strand] (%)</label>
+                <SfNumericTextBox @bind-Value="rope.DynamicElongation80kgTwoStrand" class="form-control" id="dynamicElongation80kgTwoStrand"
+                              Width="250px"
+                              Placeholder="Dynamic Elongation (80kg, Two Strand) (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="add">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => rope.DynamicElongation80kgTwoStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (Show_DynamicElongation80kgTwoStrand() && @edit)
+        {
+            <div class="form-group">
+                <label for="dynamicElongation80kgTwoStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.DynamicElongation80kgTwoStrand" class="form-control" id="dynamicElongation80kgTwoStrand"
+                              Width="250px"
+                              Placeholder="Dynamic Elongation (80kg, Two Strand) (%)"
+                              Step="0.1"
+                              Format="0.0 '%'"
+                              Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.DynamicElongation80kgTwoStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (Show_DynamicElongation80kgTwoStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.DynamicElongation80kgTwoStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DynamicElongation80kgTwoStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.DynamicElongation80kgTwoStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <!-- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+        <!--<span>Drops Before Break</span>
+        <br />-->
+
+        <div class="form-group" hidden="@Hide_DropsBeforeBreak55kgOneStrand()">
+            <label for="dropsBeforeBreak55kgOneStrand" class="rope-add-label">Drops Before Break [55kg, One Strand]</label>
+            <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak55kgOneStrand" class="form-control" id="dropsBeforeBreak55kgOneStrand"
+                              TValue="int?"
+                              Width="250px"
+                              Placeholder="Drops Before Break (55kg, One Strand)"
+                              Step="1"
+                              Format="#0"
+                              Decimals="1"
+                              Enabled="add">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.DropsBeforeBreak55kgOneStrand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group" hidden="@Hide_DropsBeforeBreak55kgOneStrand()">
+                <label for="dropsBeforeBreak55kgOneStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.DropsBeforeBreak55kgOneStrand" class="form-control" id="dropsBeforeBreak55kgOneStrand"
+                                  TValue="int?"
+                                  Width="250px"
+                                  Placeholder="Drops Before Break (55kg, One Strand)"
+                                  Step="1"
+                                  Format="#0"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.DropsBeforeBreak55kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (!Hide_DropsBeforeBreak55kgOneStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.DropsBeforeBreak55kgOneStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DropsBeforeBreak55kgOneStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.DropsBeforeBreak55kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group" hidden="@Hide_DropsBeforeBreak80kgOneStrand()">
+            <label for="dropsBeforeBreak80kgOneStrand" class="rope-add-label">Drops Before Break [80kg, One Strand]</label>
+            <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak80kgOneStrand" class="form-control" id="dropsBeforeBreak80kgOneStrand"
+                              TValue="int?"
+                              Width="250px"
+                              Placeholder="Drops Before Break (80kg, One Strand)"
+                              Step="1"
+                              Format="#0"
+                              Decimals="1"
+                              Enabled="add">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.DropsBeforeBreak80kgOneStrand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group" hidden="@Hide_DropsBeforeBreak80kgOneStrand()">
+                <label for="dropsBeforeBreak80kgOneStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.DropsBeforeBreak80kgOneStrand" class="form-control" id="dropsBeforeBreak80kgOneStrand"
+                                  TValue="int?"
+                                  Width="250px"
+                                  Placeholder="Drops Before Break (80kg, One Strand)"
+                                  Step="1"
+                                  Format="#0"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.DropsBeforeBreak80kgOneStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (!Hide_DropsBeforeBreak80kgOneStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.DropsBeforeBreak80kgOneStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DropsBeforeBreak80kgOneStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.DropsBeforeBreak80kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        <div class="form-group" hidden="@Hide_DropsBeforeBreak80kgTwoStrand()">
+            <label for="dropsBeforeBreak80kgTwoStrand" class="rope-add-label">Drops Before Break [80kg, Two Strand]</label>
+            <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak80kgTwoStrand" class="form-control" id="dropsBeforeBreak80kgTwoStrand"
+                              TValue="int?"
+                              Width="250px"
+                              Placeholder="Drops Before Break (80kg, Two Strand)"
+                              Step="1"
+                              Format="#0"
+                              Decimals="1"
+                              Enabled="add">
+            </SfNumericTextBox>
+            <ValidationMessage For="@(() => rope.DropsBeforeBreak80kgTwoStrand)"></ValidationMessage>
+        </div>
+        @if (edit)
+        {
+            <div class="form-group" hidden="@Hide_DropsBeforeBreak80kgTwoStrand()">
+                <label for="dropsBeforeBreak80kgTwoStrand" class="rope-add-label"></label>
+                <SfNumericTextBox @bind-Value="ropeEdit.DropsBeforeBreak80kgTwoStrand" class="form-control" id="dropsBeforeBreak80kgTwoStrand"
+                                  TValue="int?"
+                                  Width="250px"
+                                  Placeholder="Drops Before Break (80kg, Two Strand)"
+                                  Step="1"
+                                  Format="#0"
+                                  Decimals="1"
+                              Enabled="edit && ropeEdit?.RopeId > 0">
+                </SfNumericTextBox>
+                <ValidationMessage For="@(() => ropeEdit.DropsBeforeBreak80kgTwoStrand)"></ValidationMessage>
+            </div>
+        }
+        @if (!Hide_DropsBeforeBreak80kgTwoStrand() && (edit || approveEdit))
+        {
+            @if (rope.RopeEditSuggestions.Any(x => x.DropsBeforeBreak80kgTwoStrand != null))
+            {
+                <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DropsBeforeBreak80kgTwoStrand != null))
+                {
+                    <RP_RopeEditSuggestion item="@item.DropsBeforeBreak80kgTwoStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                }
+            }
+            <RP_RopePropertySeparator></RP_RopePropertySeparator>
+        }
+        <!-- ######################### -->
+
+        @if (add)
+        {
+            <SfButton CssClass="e-primary">Add Rope</SfButton>
+        }
+        else if (edit)
+        {
+            <SfButton CssClass="e-primary">Submit Edit Suggestion</SfButton>
+        }
+        else if (verify)
+        {
+            <SfButton CssClass="e-primary">Verify Rope</SfButton>
+        }
+        else if (delete)
+        {
+            <SfButton CssClass="e-primary">Delete Rope</SfButton>
+        }
+        else
+        {
+            
+        }
+    
+    </EditForm>
+</div>
+
+<style>
+    <!--.test-style {
+        .e-toast-container .e-toast .e-toast-message .e-toast-title {
+            color: green;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .e-toast-container .e-toast {
+            border: green
+        }
+    }
+    -->
+
+    .e-eye-slash::before {
+        content: '@passwordTextBox_IconCode';
+        font-family: e-icons;
+    }
+</style>
+
+@code {
+    EditContext editContext { get; set; }
+
+    [Parameter]
+    public int? ropeId { get; set; }
+    [Parameter]
+    public int? editInt { get; set; }
+    [Parameter]
+    public int? verifyInt { get; set; }
+    [Parameter]
+    public int? approveEditInt { get; set; }
+    [Parameter]
+    public int? deleteInt { get; set; }
+
+    private bool add { get; set; } = false;
+    private bool edit { get; set; } = false;
+    private bool verify { get; set; } = false;
+    private bool approveEdit { get; set; } = false;
+    private bool delete { get; set; } = false;
+
+    private int ropeId_Selected = 0;
+
+    private RopeDto rope = new RopeDto();
+    private RopeDto ropeEdit = new RopeDto();
+    private List<RopeDto> ropes = new List<RopeDto>();
+    private List<CategoryDto> categorys = new List<CategoryDto>();
+    private List<BrandDto> brands = new List<BrandDto>();
+
+    SfDropDownList<int, RopeDto> ropeDropdown;
+
+    SfTextBox passwordTextBox;
+    InputType passwordTextBox_InputType { get; set; } = InputType.Password;
+    private string passwordTextBox_IconCode { get; set; } = "\\e7de";
+    private string password { get; set; } = "";
+
+    SfToast toastObj;
+    private static readonly string TOAST_CSS_SUCCESS = "e-toast-success";
+    private static readonly string TOAST_CSS_INFO = "e-toast-info";
+    private static readonly string TOAST_CSS_WARNING = "e-toast-warning";
+    private static readonly string TOAST_CSS_DANGER = "e-toast-danger";
+    private static readonly string TOAST_TITLE_ADD = "Success";
+    private static readonly string TOAST_TITLE_EDIT = "Success";
+    private static readonly string TOAST_TITLE_VERIFY = "Success";
+    private static readonly string TOAST_TITLE_APPROVEEDIT = "Success";
+    private static readonly string TOAST_TITLE_APPROVEEDITDELETE = "Success";
+    private static readonly string TOAST_TITLE_DELETE = "Success";
+    private static readonly string TOAST_TITLE_PASSWORDINCORRECT = "Password";
+    private static readonly string TOAST_CONTENT_ADD = "Rope added.";
+    private static readonly string TOAST_CONTENT_EDIT = "Edit submitted.";
+    private static readonly string TOAST_CONTENT_VERIFY = "Rope verified.";
+    private static readonly string TOAST_CONTENT_APPROVEEDIT = "Rope edit approved.";
+    private static readonly string TOAST_CONTENT_APPROVEEDITDELETE = "Rope edit suggestion deleted.";
+    private static readonly string TOAST_CONTENT_DELETE = "Rope deleted.";
+    private static readonly string TOAST_CONTENT_PASSWORDINCORRECT = "Password incorrect.";
+    private string toastCss = TOAST_CSS_INFO;
+    private string toastTitle = "ToastTitleDefault";
+    private string toastContent = "ToastContentDefault";
+
+    [Inject]
+    private IRopeService ropeService { get; set; }
+    [Inject]
+    private ICategoryService categoryService { get; set; }
+    [Inject]
+    private IBrandService brandService { get; set; }
+    [Inject]
+    private IPasswordService passwordService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        OnInit();
+    }
+
+    protected override void OnParametersSet()
+    {
+        OnInit();
+    }
+
+    private void OnInit()
+    {
+        //All modes must be set to false on navigation.
+        //Otherwise page switching within the component (e.g. Add to Verify), can mean two modes are true at once. 
+        add = false;
+        edit = false;
+        verify = false;
+        approveEdit = false;
+        delete = false;
+
+        password = "";
+
+        ropeId = ropeId ?? 0;
+        editInt = editInt ?? 0;
+        verifyInt = verifyInt ?? 0;
+        approveEditInt = approveEditInt ?? 0;
+        deleteInt = deleteInt ?? 0;
+
+        if (deleteInt > 0)
+        {
+            delete = true;
+        }
+        else if (approveEditInt > 0)
+        {
+            approveEdit = true;
+        }
+        else if (verifyInt > 0)
+        {
+            verify = true;
+        }
+        else if (editInt > 0)
+        {
+            edit = true;
+        }
+        else
+        {
+            add = true;
+        }
+
+        if (ropeId.HasValue && ropeId > 0)
+        {
+            ropeId_Selected = ropeId.Value;
+            if (edit)
+            {
+                rope = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
+                ropeEdit = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
+            }
+            else
+            {
+                rope = ropeService.GetRopeById(ropeId.Value);
+                ropeEdit = new RopeDto();
+            }
+        }
+        else
+        {
+            ropeId_Selected = 0;
+
+            rope = new RopeDto();
+            ropeEdit = new RopeDto();
+        }
+
+        categorys = categoryService.GetAllCategorys();
+        brands = brandService.GetAllBrands();
+
+        if (delete)
+        {
+            ropes = ropeService.GetRopes_All();
+
+            editContext = new EditContext(rope);
+        }
+        else if (approveEdit)
+        {
+            ropes = ropeService.GetRopes_WithEditSuggestions();
+
+            editContext = new EditContext(rope);
+        }
+        else if (verify)
+        {
+            ropes = ropeService.GetRopes_Verified(false);
+
+            editContext = new EditContext(rope);
+        }
+        else if (edit)
+        {
+            ropes = ropeService.GetRopes_All();
+
+            editContext = new EditContext(ropeEdit);
+        }
+        else //add
+        {
+            editContext = new EditContext(rope);
+        }
+    }
+
+    private async Task passwordTextBoxOnCreate()
+    {
+        var iconClick = EventCallback.Factory.Create<MouseEventArgs>(this, TogglePasswordVisibility);
+        await passwordTextBox.AddIconAsync("append", "e-eye-slash", new Dictionary<string, object>() { { "onclick", iconClick } });
+    }
+    public void TogglePasswordVisibility()
+    {
+        if (passwordTextBox_InputType == InputType.Password)
+        {
+            passwordTextBox_InputType = InputType.Text;
+            passwordTextBox_IconCode = "\\e887"; //eye-slash
+        }
+        else
+        {
+            passwordTextBox_InputType = InputType.Password;
+            passwordTextBox_IconCode = "\\e7de"; //eye open
+        }
+    }
+
+    private void RopeUpdated()
+    {
+        if (ropeId_Selected > 0)
+        {
+            if (edit || approveEdit)
+            {
+                rope = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
+                ropeEdit = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected); //need deep clone of rope, duplicate fetch easier.
+
+                editContext = new EditContext(ropeEdit);
+            }
+            else
+            {
+                rope = ropeService.GetRopeById(ropeId_Selected);
+                ropeEdit = new RopeDto();
+
+                editContext = new EditContext(rope);
+            }
+        }
+    }
+
+    private void AddRope()
+    {
+        if (rope != null)
+        {
+            ropeService.AddRope(rope);
+            ShowToast(TOAST_TITLE_ADD, TOAST_CONTENT_ADD, TOAST_CSS_SUCCESS);
+            ClearRopes();
+        }
+    }
+    private void SubmitRopeEditSuggestion()
+    {
+        if (rope != null && ropeEdit != null)
+        {
+            ropeService.SubmitRopeEditSuggestion(rope, ropeEdit);
+            ShowToast(TOAST_TITLE_EDIT, TOAST_CONTENT_EDIT, TOAST_CSS_SUCCESS);
+            ropeId_Selected = 0; //Clear dropdown.
+            ClearRopes();
+        }
+    }
+    private void VerifyRope()
+    {
+        if (passwordService.CheckPassword_Verify(password))
+        {
+            if (rope != null)
+            {
+                ropeService.VerifyRope(rope.RopeId);
+                ShowToast(TOAST_TITLE_VERIFY, TOAST_CONTENT_VERIFY, TOAST_CSS_SUCCESS);
+                ropeId_Selected = 0; //Clear dropdown.
+                ClearRopes();
+                ropes = ropeService.GetRopes_Verified(false);
+            }
+        }
+        else
+        {
+            ShowToast_IncorrectPassword();
+        }
+    }
+    private void DeleteRope()
+    {
+        if (passwordService.CheckPassword_Delete(password))
+        {
+            if (rope != null)
+            {
+                ropeService.RemoveRope(rope.RopeId);
+                ShowToast(TOAST_TITLE_DELETE, TOAST_CONTENT_DELETE, TOAST_CSS_SUCCESS);
+                ropeId_Selected = 0; //Clear dropdown.
+                ClearRopes();
+                ropes = ropeService.GetRopes_All();
+            }
+        }
+        else
+        {
+            ShowToast_IncorrectPassword();
+        }
+    }
+    private void ApproveEditSuggestion(int ropeEditSuggestionId)
+    {
+        if (passwordService.CheckPassword_Edit(password))
+        {
+            ropeService.ApproveRopeEditSuggestion(ropeEditSuggestionId, rope.RopeId);
+            ShowToast(TOAST_TITLE_APPROVEEDIT, TOAST_CONTENT_APPROVEEDIT, TOAST_CSS_SUCCESS);
+            RefreshRope_WithEditSuggestions();
+            ropes = ropeService.GetRopes_WithEditSuggestions();
+        }
+        else
+        {
+            ShowToast_IncorrectPassword();
+        }
+    }
+    private void DeleteEditSuggestion(int ropeEditSuggestionId)
+    {
+        if (passwordService.CheckPassword_Edit(password))
+        {
+            ropeService.DeleteRopeEditSuggestion(ropeEditSuggestionId);
+            ShowToast(TOAST_TITLE_APPROVEEDITDELETE, TOAST_CONTENT_APPROVEEDITDELETE, TOAST_CSS_SUCCESS);
+            RefreshRope_WithEditSuggestions();
+            ropes = ropeService.GetRopes_WithEditSuggestions();
+        }
+        else
+        {
+            ShowToast_IncorrectPassword();
+        }
+    }
+
+    private async Task ShowToast(string title, string content, string css)
+    {
+        toastTitle = title;
+        toastContent = content;
+        toastCss = css;
+
+        await Task.Delay(100); //Have to incldue this so toastObj picks up the new values of toastTitle, toastContent, toastCss.
+
+        await Task.Run(() => toastObj.ShowAsync());
+    }
+    private void ShowToast_IncorrectPassword()
+    {
+        ShowToast(TOAST_TITLE_PASSWORDINCORRECT, TOAST_CONTENT_PASSWORDINCORRECT, TOAST_CSS_DANGER);
+    }
+
+    private void FormSubmit()
+    {
+        if (edit && ropeEdit?.RopeId <= 0)
+        {
+            ShowToast("No rope selected", "Select a rope to submit an edit suggestion.", TOAST_CSS_WARNING);
+        }
+        else if (verify && rope?.RopeId <= 0)
+        {
+            ShowToast("No rope selected", "Select a rope to verify it.", TOAST_CSS_WARNING);
+        }
+        else if (delete && rope?.RopeId <= 0)
+        {
+            ShowToast("No rope selected", "Select a rope to delete it.", TOAST_CSS_WARNING);
+        }
+        else
+        {
+            bool formValid = editContext.Validate();
+
+            if (formValid)
+            {
+                FormValidSubmit();
+            }
+            else
+            {
+                FormInvalidSubmit();
+            }
+        }
+    }
+
+    private void FormValidSubmit() //EditContext editContext
+    {
+        if (add)
+        {
+            AddRope();
+        }
+        else if (edit)
+        {
+            SubmitRopeEditSuggestion();
+        }
+        else if (verify)
+        {
+            VerifyRope();
+        }
+        else if (delete)
+        {
+            DeleteRope();
+        }
+        else
+        {
+
+        }
+    }
+
+    private void ClearRopes()
+    {
+        rope = new RopeDto();
+        ropeEdit = new RopeDto();
+
+        editContext = new EditContext(new RopeDto()); //Set edit context to empty rope. Otherwise edit context holds onto values from the previous edit context and can allow submit when no rope/ropeEdit selected.
+    }
+
+    private void FormInvalidSubmit() //EditContext editContext
+    {
+        var invalidSubmit = "InvalidSubmit";
+    }
+
+    private void Cancel()
+    {
+        // Perform any cancel logic or navigation
+    }
+
+
+    private void RefreshRope_WithEditSuggestions()
+    {
+        rope = ropeService.GetRopeById_IncEditSuggestions(rope.RopeId);
+        if (!rope.RopeEditSuggestions.Any())
+        {
+            ropeId_Selected = 0; //Clear dropdown.
+            ClearRopes();
+        }
+        //Else. rope still has edit suggestions, keep it active.
+    }
+
+    //private void OnCategoryChange(Syncfusion.Blazor.DropDowns.ChangeEventArgs<Category> args)
+    //{
+    // Handle category change event if needed
+    //}
+
+    private bool Hide_ImpactForce55kgOneStrand()
+    {
+        if (edit) { return !categoryService.Has_ImpactForce55kgOneStrand(ropeEdit); }
+        else { return !categoryService.Has_ImpactForce55kgOneStrand(rope); }
+    }
+
+    private bool Hide_ImpactForce80kgOneStrand()
+    {
+        if (edit) { return !categoryService.Has_ImpactForce80kgOneStrand(ropeEdit); }
+        else { return !categoryService.Has_ImpactForce80kgOneStrand(rope); }
+    }
+
+    private bool Hide_ImpactForce80kgTwoStrand()
+    {
+        if (edit) { return !categoryService.Has_ImpactForce80kgTwoStrand(ropeEdit); }
+        else { return !categoryService.Has_ImpactForce80kgTwoStrand(rope); }
+    }
+
+
+    private bool Hide_StaticElongation80kgOneStrand()
+    {
+        if (edit) { return !categoryService.Has_StaticElongation80kgOneStrand(ropeEdit); }
+        else { return !categoryService.Has_StaticElongation80kgOneStrand(rope); }
+    }
+
+    private bool Hide_StaticElongation80kgTwoStrand()
+    {
+        if (edit) { return !categoryService.Has_StaticElongation80kgTwoStrand(ropeEdit); }
+        else { return !categoryService.Has_StaticElongation80kgTwoStrand(rope); }
+    }
+
+
+    private bool Show_DynamicElongation55kgOneStrand()
+    {
+        if (edit) { return categoryService.Has_DynamicElongation55kgOneStrand(ropeEdit); }
+        else { return categoryService.Has_DynamicElongation55kgOneStrand(rope); }
+    }
+
+    private bool Show_DynamicElongation80kgOneStrand()
+    {
+        if (edit) { return categoryService.Has_DynamicElongation80kgOneStrand(ropeEdit); }
+        else { return categoryService.Has_DynamicElongation80kgOneStrand(rope); }
+    }
+
+    private bool Show_DynamicElongation80kgTwoStrand()
+    {
+        if (edit) { return categoryService.Has_DynamicElongation80kgTwoStrand(ropeEdit); }
+        else { return categoryService.Has_DynamicElongation80kgTwoStrand(rope); }
+    }
+
+
+    private bool Hide_DropsBeforeBreak55kgOneStrand()
+    {
+        if (edit) { return !categoryService.Has_DropsBeforeBreak55kgOneStrand(ropeEdit); }
+        else { return !categoryService.Has_DropsBeforeBreak55kgOneStrand(rope); }
+    }
+
+    private bool Hide_DropsBeforeBreak80kgOneStrand()
+    {
+        if (edit) { return !categoryService.Has_DropsBeforeBreak80kgOneStrand(ropeEdit); }
+        else { return !categoryService.Has_DropsBeforeBreak80kgOneStrand(rope); }
+    }
+
+    private bool Hide_DropsBeforeBreak80kgTwoStrand()
+    {
+        if (edit) { return !categoryService.Has_DropsBeforeBreak80kgTwoStrand(ropeEdit); }
+        else { return !categoryService.Has_DropsBeforeBreak80kgTwoStrand(rope); }
+    }
+}

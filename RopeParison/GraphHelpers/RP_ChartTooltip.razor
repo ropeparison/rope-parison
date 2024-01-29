@@ -1,0 +1,40 @@
+﻿<ChartTooltipSettings Enable="true">
+    <Template>
+        @{
+            var data = context as ChartTooltipInfo;
+            var displayDataStr = data.Text;
+            @if (displayDataStr != null)
+            {
+                var displayData = displayDataStr.Split(":::");
+
+                <div>
+                    <table style="width:100%;  border: 1px solid black; background-color: white">
+
+                        <tr>
+                            <th colspan="2">@displayData[2] @displayData[0] @displayData[1]</th>
+                        </tr>
+                        <tr>
+                            <td>@displayData[3]:</td>
+                            <td>@displayData[4] @displayData[5]</td>
+                        </tr>
+                        <tr>
+                            <td>@displayData[6]:</td>
+                            <td>@displayData[7] @displayData[8]</td>
+                        </tr>
+                        @if (displayData.Count() > 9)
+                        {
+                            <tr>
+                                <td>@displayData[9]:</td>
+                            <td>@displayData[10] @displayData[11]</td>
+                        </tr>
+                    }
+                    </table>
+                </div>
+            }
+        }
+    </Template>
+</ChartTooltipSettings>
+
+@code {
+
+}

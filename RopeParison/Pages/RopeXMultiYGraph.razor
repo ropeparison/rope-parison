@@ -1,0 +1,423 @@
+﻿@page "/line"
+@using RopeParison.Logic.Services;
+@using RopeParison.Protocol;
+@using System.Linq
+@using RopeParison.GraphHelpers
+
+
+
+
+
+<SfMediaQuery @ref="mediaQuery" @bind-ActiveBreakPoint="activeBreakpoint"></SfMediaQuery>
+@if (activeBreakpoint == "Small")
+{
+    isSmall = true;
+    bool isInit = false;
+    SetSidebarSettings(isInit);
+    SetChartSettings(isInit);
+}
+//else if (activeBreakpoint == "Medium")
+else
+{
+    isSmall = false;
+    bool isInit = false;
+    SetSidebarSettings(isInit);
+    SetChartSettings(isInit);
+}
+
+<SfSidebar class="default-sidebar sidebar-width"
+    Width="250px"
+    Target=".maincontent"
+    CloseOnDocumentClick="@sidebarCloseOnDocumentClick"
+    EnableGestures="@sidebarEnableGestures"
+    ShowBackdrop="@sidebarShowBackdrop"
+    Type="@sidebarType"
+    @bind-IsOpen="sidebarOpen"
+    Changed="@SidebarOpenCloseChanged">
+        
+    <ChildContent>
+
+        <div class="title-header">
+            <div class="inline-element">Options </div>
+            <SfButton CssClass="right e-flat e-round" @onclick="CloseSidebar" IconCss="fa-solid fa-xmark"></SfButton>
+            
+        </div>
+
+        <RP_RopeSelection RopeSelectionChanged="@OnRopeSelectionChanged"></RP_RopeSelection>
+
+        <div class="h5">
+            Attribute Selection
+        </div>
+        <RP_AttributePicker AttributeSelectionChanged="(x => OnChartYAxisAttributeChanged(x, 0))" initialValue="@chartYAxisRoPrInList[0].LogicalName" numericOnly="true"></RP_AttributePicker>
+        <RP_AttributePicker AttributeSelectionChanged="(x => OnChartYAxisAttributeChanged(x, 1))" initialValue="@chartYAxisRoPrInList[1].LogicalName" numericOnly="true"></RP_AttributePicker>
+        <RP_AttributePicker AttributeSelectionChanged="(x => OnChartYAxisAttributeChanged(x, 2))" initialValue="@chartYAxisRoPrInList[2].LogicalName" numericOnly="true"></RP_AttributePicker>
+        <RP_AttributePicker AttributeSelectionChanged="(x => OnChartYAxisAttributeChanged(x, 3))" numericOnly="true"></RP_AttributePicker>
+
+
+
+    </ChildContent>
+</SfSidebar>
+
+<div class="maincontent">
+    <div><!--This div seems pointless, but is the only way so far to make the sidebar push feature succesfully push all content in the target div. It only seems to push the first div inside the target div.-->
+        <div>
+            <h3 class="inline-element">Line</h3>
+            <!--<SfButton IsToggle="true" @onclick="AdvancedOptionsToggle" CssClass="right e-flat" IsPrimary="true" Content="@advancedOptionsToggleContent"></SfButton>-->
+            <SfButton IsToggle="true" @onclick="SidebarToggle" CssClass="right e-flat" IsPrimary="true" Content="@sidebarToggleContent"></SfButton>
+        </div>
+
+        <div class="grid-dimensions">
+            @if (chartDisplay)
+            {
+                <SfChart Width="90%">
+
+                    <ChartTooltipSettings Enable="true">
+                    </ChartTooltipSettings>
+
+                    <ChartAxes>
+                        <ChartAxis Name="XAxisRopes" ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Rope" RangePadding="Syncfusion.Blazor.Charts.ChartRangePadding.Additional"></ChartAxis>
+
+                        <ChartAxis Name="YAxisPercentage" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Title="%" RangePadding="Syncfusion.Blazor.Charts.ChartRangePadding.Additional"></ChartAxis>
+                        <ChartAxis Name="YAxisCount" OpposedPosition="true" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Title="Count" RangePadding="Syncfusion.Blazor.Charts.ChartRangePadding.Additional"></ChartAxis>
+                        <ChartAxis Name="YAxisKiloNewton" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Title="kN" RangePadding="Syncfusion.Blazor.Charts.ChartRangePadding.Additional"></ChartAxis>
+                        <ChartAxis Name="YAxisMillimetre" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Title="mm" RangePadding="Syncfusion.Blazor.Charts.ChartRangePadding.Additional"></ChartAxis>
+                        <ChartAxis Name="YAxisMillimetreSquared" OpposedPosition="true" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Title="mm\u00b2" RangePadding="Syncfusion.Blazor.Charts.ChartRangePadding.Additional"></ChartAxis>
+                        <ChartAxis Name="YAxisGramPerMillimetreCubed" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Title="g/mm\u00b3" RangePadding="Syncfusion.Blazor.Charts.ChartRangePadding.Additional"></ChartAxis>
+                        <ChartAxis Name="YAxisGramPerMetre" OpposedPosition="true" ValueType="Syncfusion.Blazor.Charts.ValueType.Double" Title="g/m" RangePadding="Syncfusion.Blazor.Charts.ChartRangePadding.Additional"></ChartAxis>
+
+                    </ChartAxes>
+
+                    <ChartSeriesCollection>
+                        @foreach (SeriesData series in chartSeriesList)
+                        {
+                            <ChartSeries Type="ChartSeriesType.Line"
+                                DataSource=@series.DataSource
+                                Name=@series.Name
+                                XName=@series.XName
+                                YName=@series.YName
+                                YAxisName="@series.YAxisName"
+                                XAxisName="@series.XAxisName">
+                            </ChartSeries>
+                        }
+                    </ChartSeriesCollection>
+
+                    <ChartLegendSettings Visible="true" Position="LegendPosition.Top"></ChartLegendSettings>
+                </SfChart>
+            }
+            
+        </div>
+
+        <div>
+            @if (!isSmall)
+            {
+                <p></p>
+            }
+            else
+            {
+                <p></p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    //-----------------------------------------------
+    //Services
+    //-----------------------------------------------
+    [Inject]
+    private IRopeService ropeService { get; set; }
+    //-----------------------------------------------
+    //ServicesEND
+    //-----------------------------------------------
+
+    SfMediaQuery mediaQuery = new SfMediaQuery();
+    private string activeBreakpoint = "";
+    private bool isSmall = false; //mobile
+
+    //-------------------------------------------------------------
+    //Data
+    //-------------------------------------------------------------
+    private List<RopeDto> ropes = new List<RopeDto>();
+    //-------------------------------------------------------------
+    //DataEND
+    //-------------------------------------------------------------
+
+    //---------------------------------------------------------------------------------
+    //Chart
+    //---------------------------------------------------------------------------------
+    private bool chartDisplay = true;
+
+    private List<AxesData> chartAxesList = new List<AxesData>();
+    private List<SeriesData> chartSeriesList = new List<SeriesData>();
+
+    private RopePropertyInformationsDto ropePropertyInformations = new RopePropertyInformationsDto();
+
+    private List<RopePropertyInformationDto> chartYAxisRoPrInList = new List<RopePropertyInformationDto>();
+    private static readonly int MAX_NUM_ATTRIBUTES = 4;
+    //---------------------------------------------------------------------------------
+    //ChartEND
+    //---------------------------------------------------------------------------------
+
+    //------------------------------------------------------------------------------------
+    //Sidebar
+    //------------------------------------------------------------------------------------
+    private bool sidebarOpen = false;
+    private bool sidebarCloseOnDocumentClick = false;
+    private bool sidebarEnableGestures = false; //EnableGestures is things like swipe to close. Swipe to close is annoying on desktop when adjusting range sliders.
+    private bool sidebarShowBackdrop = false;
+    private SidebarType sidebarType = SidebarType.Auto;
+
+    private static readonly string SHOW_OPTIONS = "Show Options";
+    private static readonly string HIDE_OPTIONS = "Hide Options";
+    private static readonly string OPTIONS = "Options";
+    private string showOptions = "";
+    private string hideOptions = "";
+    private string sidebarToggleContent = OPTIONS;
+    //------------------------------------------------------------------------------------
+    //SidebarEND
+    //------------------------------------------------------------------------------------
+
+    private static readonly string SHOW_ADVANCED_OPTIONS = "Show Advanced Options";
+    private static readonly string HIDE_ADVANCED_OPTIONS = "Hide Advanced Options";
+    private string advancedOptionsToggleContent = SHOW_ADVANCED_OPTIONS;
+    private bool showAdvancedOptions = false;
+
+    //**********************************************************************************************************************************************************************************************
+    //DeclarationsEND
+    //**********************************************************************************************************************************************************************************************
+
+
+    protected override void OnInitialized()
+    {
+        bool isInit = true;
+        SetSidebarSettings(isInit);
+        SetChartSettings(isInit);
+
+        GetChartData();
+    }
+
+    //---------------------------------------------------------------------------------
+    //Chart
+    //---------------------------------------------------------------------------------
+    private void SetChartSettings(bool isInit)
+    {
+        if (showAdvancedOptions)
+        {
+            //gridToolbarItems = new string[] { "ColumnChooser" };
+        }
+        else
+        {
+            //gridToolbarItems = null;
+        }
+
+        if (isInit)
+        {
+            for (int i = 0; i < MAX_NUM_ATTRIBUTES; i++)
+            {
+                chartYAxisRoPrInList.Add(new RopePropertyInformationDto());
+            }
+
+            //Assumption here that there'll always be at least three attribute pickers in the list.
+            chartYAxisRoPrInList[0] = ropePropertyInformations.StaticElongation80kgOneStrand;
+            chartYAxisRoPrInList[1] = ropePropertyInformations.DynamicElongation80kgOneStrand;
+            chartYAxisRoPrInList[2] = ropePropertyInformations.ImpactForce80kgOneStrand;
+        }
+
+        //if (chartRopes != null)
+        //{
+        //chartRopes.Refresh();
+        //}
+    }
+    private void SetChartWidth()
+    {
+        if (isSmall)
+        {
+            //gridWidth = GRID_WIDTH_SMALL;
+            //gridColWidthMax = GRID_COL_WIDTH_MAX_SMALL;
+        }
+        else
+        {
+            //gridWidth = GRID_WIDTH_LARGE;
+            //gridColWidthMax = GRID_COL_WIDTH_MAX_LARGE;
+        }
+    }
+
+    private void OnChartYAxisAttributeChanged(RopePropertyInformationDto roPrIn, int i)
+    {
+        chartYAxisRoPrInList[i] = roPrIn;
+        GetChartData();
+    }
+
+    private string GetYAxisName(RopePropertyAxisType ropePropertyAxisType)
+    {
+        if (RopePropertyAxisType.Percentage == ropePropertyAxisType)
+            return "YAxisPercentage";
+        else if (RopePropertyAxisType.NumberLessThan50 == ropePropertyAxisType)
+            return "YAxisCount";
+        else if (RopePropertyAxisType.KiloNewton == ropePropertyAxisType)
+            return "YAxisKiloNewton";
+        else if (RopePropertyAxisType.Millimetre == ropePropertyAxisType)
+            return "YAxisMillimetre";
+        else if (RopePropertyAxisType.MillimetreSquared == ropePropertyAxisType)
+            return "YAxisMillimetreSquared";
+        else if (RopePropertyAxisType.GramPerMillimetreCubed == ropePropertyAxisType)
+            return "YAxisGramPerMillimetreCubed";
+        else if (RopePropertyAxisType.GramPerMetre == ropePropertyAxisType)
+            return "YAxisGramPerMetre";
+        else
+        {
+            //Shouldn't get here. Use YAxisCount as default
+            return "YAxisCount";
+        }
+    }
+
+    private async Task GetChartData()
+    {
+        chartDisplay = false;
+        StateHasChanged(); //Totally remove chart from DOM. It does not render properly (various problems) if axes/data are changed. Needs to be removed and re-added, so it re-renders initially.
+        await Task.Delay(1); //Token task delay required to allow component to re-render and remove chart from DOM.
+
+        chartSeriesList.Clear();
+
+        foreach (var rope in ropes)
+        {
+            rope.InformationText = $"{rope.Name}:::{rope.Diameter.ToString("N1")}:::{rope.Brand.Name}";
+            for (int i = 0; i < MAX_NUM_ATTRIBUTES; i++)
+            {
+                if (chartYAxisRoPrInList[i].Name != null) //Not all attribute pickers may be populated.
+                {
+                    rope.InformationText += $":::{chartYAxisRoPrInList[i].Name}:::{rope[chartYAxisRoPrInList[i].LogicalName]}:::{chartYAxisRoPrInList[i].Unit}";
+                }
+            }
+        }
+
+        for (int i = 0; i < MAX_NUM_ATTRIBUTES; i++)
+        {
+            if (chartYAxisRoPrInList[i].Name != null)
+            {
+                chartSeriesList.Add(new SeriesData
+                    {
+                        DataSource = ropes,
+                        Name = chartYAxisRoPrInList[i].NameUnit,
+                        XName = "Name",
+                        YName = chartYAxisRoPrInList[i].LogicalName, //Can do nested data binding on the y-axis (as long as don't use brand/category);
+                        XAxisName = "XAxisRopes",
+                        YAxisName = GetYAxisName(chartYAxisRoPrInList[i].AxisType),
+                    }
+                );
+            }
+        }
+
+        chartDisplay = true;
+        StateHasChanged();
+    }
+    //---------------------------------------------------------------------------------
+    //ChartEND
+    //---------------------------------------------------------------------------------
+
+    //---------------------------------------------------------------------------------
+    //Sidebar
+    //---------------------------------------------------------------------------------
+    private void SetSidebarSettings(bool isInit)
+    {
+        if (isSmall)
+        {
+            if (isInit)
+            {
+                sidebarOpen = true; //Decided to open with sidebar in small mode.
+            }
+            sidebarCloseOnDocumentClick = true;
+            sidebarEnableGestures = true;
+            sidebarShowBackdrop = true;
+            sidebarType = SidebarType.Over; //For some reason changing sidebar type causes sidebar to close if it's open. No resolution as yet.
+            showOptions = OPTIONS;
+            hideOptions = OPTIONS;
+            sidebarToggleContent = showOptions;
+        }
+        else
+        {
+            if (isInit)
+            {
+                sidebarOpen = true;
+            }
+            sidebarCloseOnDocumentClick = false;
+            sidebarEnableGestures = false;
+            sidebarShowBackdrop = false;
+            sidebarType = SidebarType.Push;
+            showOptions = SHOW_OPTIONS;
+            hideOptions = HIDE_OPTIONS;
+        }
+    }
+
+    private void SidebarToggle()
+    {
+        if (sidebarOpen)
+        {
+            sidebarOpen = false;
+        }
+        else
+        {
+            sidebarOpen = true;
+        }
+    }
+
+    public void CloseSidebar()
+    {
+        sidebarOpen = false;
+    }
+
+    public void SidebarOpenCloseChanged()
+    {
+        if (sidebarOpen)
+        {
+            sidebarToggleContent = hideOptions;
+        }
+        else
+        {
+            sidebarToggleContent = showOptions;
+        }
+    }
+    //---------------------------------------------------------------------------------
+    //SidebarEND
+    //---------------------------------------------------------------------------------
+
+    private void AdvancedOptionsToggle()
+    {
+        if (showAdvancedOptions)
+        {
+            showAdvancedOptions = false;
+            //gridAllowFiltering = false;
+            //gridShowColumnChooser = false;
+            advancedOptionsToggleContent = SHOW_ADVANCED_OPTIONS;
+        }
+        else
+        {
+            showAdvancedOptions = true;
+            //gridAllowFiltering = true;
+            //gridShowColumnChooser = true;
+            advancedOptionsToggleContent = HIDE_ADVANCED_OPTIONS;
+        }
+
+        bool isInit = false;
+        SetChartSettings(isInit);
+    }
+
+    //----------------------------------------------------------------------------------
+    //RopeInclusion
+    //----------------------------------------------------------------------------------
+    private void OnRopeSelectionChanged(List<RopeDto> ropeSelection)
+    {
+        ropes = ropeSelection;
+        GetChartData();
+    }
+    //----------------------------------------------------------------------------------
+    //RopeInclusionEND
+    //----------------------------------------------------------------------------------
+
+}
+
+<style>
+
+
+
+</style>
