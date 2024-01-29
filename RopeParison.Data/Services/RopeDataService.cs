@@ -363,6 +363,9 @@ namespace RopeParison.Data.Services
                 var rope = db.Ropes.FirstOrDefault(r => r.RopeId == ropeId);
                 if (rope != null)
                 {
+                    var rES = db.RopeEditSuggestions.Where(x => x.RopeId == ropeId);
+                    db.RopeEditSuggestions.RemoveRange(rES);
+
                     db.Ropes.Remove(rope);
                     db.SaveChanges();
                 }
