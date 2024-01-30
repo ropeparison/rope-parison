@@ -366,7 +366,7 @@
         <br />-->
 
         <div class="form-group" hidden="@Hide_ImpactForce55kgOneStrand()">
-            <label for="impactForce55kgOneStrand" class="rope-add-label">Impact Force [55kg, One Strand] (kN)</label>
+            <label for="impactForce55kgOneStrand" class="rope-add-label">Impact Force [55kg, One Strand<span hidden="@IsNotHalfTwinOrTriple()"> (Half)</span>] (kN)</label>
             <SfNumericTextBox @bind-Value="rope.ImpactForce55kgOneStrand" class="form-control" id="impactForce55kgOneStrand"
                               Width="250px"
                               Placeholder="Impact Force (55kg, One Strand) (kN)"
@@ -407,7 +407,7 @@
         <!-- ######################### -->
 
         <div class="form-group" hidden="@Hide_ImpactForce80kgOneStrand()">
-            <label for="impactForce80kgOneStrand" class="rope-add-label">Impact Force [80kg, One Strand] (kN)</label>
+            <label for="impactForce80kgOneStrand" class="rope-add-label">Impact Force [80kg, One Strand<span hidden="@IsNotHalfTwinOrTriple()"> (Single)</span>] (kN)</label>
             <SfNumericTextBox @bind-Value="rope.ImpactForce80kgOneStrand" class="form-control" id="impactForce80kgOneStrand"
                             Width="250px"
                             Placeholder="Impact Force (80kg, One Strand) (kN)"
@@ -448,7 +448,7 @@
         <!-- ######################### -->
 
         <div class="form-group" hidden="@Hide_ImpactForce80kgTwoStrand()">
-            <label for="impactForce80kgTwoStrand" class="rope-add-label">Impact Force [80kg, Two Strand] (kN)</label>
+            <label for="impactForce80kgTwoStrand" class="rope-add-label">Impact Force [80kg, Two Strand<span hidden="@IsNotHalfTwinOrTriple()"> (Twin)</span>] (kN)</label>
             <SfNumericTextBox @bind-Value="rope.ImpactForce80kgTwoStrand" class="form-control" id="impactForce80kgTwoStrand"
                               Width="250px"
                               Placeholder="Impact Force (80kg, Two Strand) (kN)"
@@ -493,7 +493,7 @@
         <br />-->
 
         <div class="form-group" hidden="@Hide_StaticElongation80kgOneStrand()">
-            <label for="staticElongation80kgOneStrand" class="rope-add-label">Static Elongation [80kg, One Strand] (%)</label>
+            <label for="staticElongation80kgOneStrand" class="rope-add-label">Static Elongation [80kg, One Strand<span hidden="@IsNotHalfTwin()"> (H)</span><span hidden="@IsNotTriple()"> (H/S)</span>] (%)</label>
             <SfNumericTextBox @bind-Value="rope.StaticElongation80kgOneStrand" class="form-control" id="staticElongation80kgOneStrand"
                               Width="250px"
                               Placeholder="Static Elongation (80kg, One Strand) (%)"
@@ -534,7 +534,7 @@
         <!-- ######################### -->
 
         <div class="form-group" hidden="@Hide_StaticElongation80kgTwoStrand()">
-            <label for="staticElongation80kgTwoStrand" class="rope-add-label">Static Elongation [80kg, Two Strand] (%)</label>
+            <label for="staticElongation80kgTwoStrand" class="rope-add-label">Static Elongation [80kg, Two Strand<span hidden="@IsNotHalfTwinOrTriple()"> (T)</span>] (%)</label>
             <SfNumericTextBox @bind-Value="rope.StaticElongation80kgTwoStrand" class="form-control" id="staticElongation80kgTwoStrand"
                               Width="250px"
                               Placeholder="Static Elongation (80kg, Two Strand) (%)"
@@ -581,7 +581,7 @@
         @if (Show_DynamicElongation55kgOneStrand())
         {
             <div class="form-group">
-                <label for="dynamicElongation55kgOneStrand" class="rope-add-label">Dynamic Elongation [55kg, One Strand] (%)</label>
+                <label for="dynamicElongation55kgOneStrand" class="rope-add-label">Dynamic Elongation [55kg, One Strand<span hidden="@IsNotHalfTwinOrTriple()"> (H)</span>] (%)</label>
                 <SfNumericTextBox @bind-Value="rope.DynamicElongation55kgOneStrand" class="form-control" id="dynamicElongation55kgOneStrand"
                               Width="250px"
                               Placeholder="Dynamic Elongation (55kg, One Strand) (%)"
@@ -625,7 +625,7 @@
         @if (Show_DynamicElongation80kgOneStrand())
         {
             <div class="form-group">
-                <label for="dynamicElongation80kgOneStrand" class="rope-add-label">Dynamic Elongation [80kg, One Strand] (%)</label>
+                <label for="dynamicElongation80kgOneStrand" class="rope-add-label">Dynamic Elongation [80kg, One Strand<span hidden="@IsNotHalfTwinOrTriple()"> (S)</span>] (%)</label>
                 <SfNumericTextBox @bind-Value="rope.DynamicElongation80kgOneStrand" class="form-control" id="dynamicElongation80kgOneStrand"
                             Width="250px"
                             Placeholder="Dynamic Elongation (80kg, One Strand) (%)"
@@ -669,7 +669,7 @@
         @if (Show_DynamicElongation80kgTwoStrand())
         {
             <div class="form-group">
-                <label for="dynamicElongation80kgTwoStrand" class="rope-add-label">Dynamic Elongation [80kg, Two Strand] (%)</label>
+                <label for="dynamicElongation80kgTwoStrand" class="rope-add-label">Dynamic Elongation [80kg, Two Strand<span hidden="@IsNotHalfTwinOrTriple()"> (T)</span>] (%)</label>
                 <SfNumericTextBox @bind-Value="rope.DynamicElongation80kgTwoStrand" class="form-control" id="dynamicElongation80kgTwoStrand"
                               Width="250px"
                               Placeholder="Dynamic Elongation (80kg, Two Strand) (%)"
@@ -715,7 +715,7 @@
         <br />-->
 
         <div class="form-group" hidden="@Hide_DropsBeforeBreak55kgOneStrand()">
-            <label for="dropsBeforeBreak55kgOneStrand" class="rope-add-label">Drops Before Break [55kg, One Strand]</label>
+            <label for="dropsBeforeBreak55kgOneStrand" class="rope-add-label">Drops Before Break [55kg, One Strand<span hidden="@IsNotHalfTwinOrTriple()"> (H)</span>]</label>
             <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak55kgOneStrand" class="form-control" id="dropsBeforeBreak55kgOneStrand"
                               TValue="int?"
                               Width="250px"
@@ -758,7 +758,7 @@
         <!-- ######################### -->
 
         <div class="form-group" hidden="@Hide_DropsBeforeBreak80kgOneStrand()">
-            <label for="dropsBeforeBreak80kgOneStrand" class="rope-add-label">Drops Before Break [80kg, One Strand]</label>
+            <label for="dropsBeforeBreak80kgOneStrand" class="rope-add-label">Drops Before Break [80kg, One Strand<span hidden="@IsNotHalfTwinOrTriple()"> (S)</span>]</label>
             <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak80kgOneStrand" class="form-control" id="dropsBeforeBreak80kgOneStrand"
                               TValue="int?"
                               Width="250px"
@@ -801,7 +801,7 @@
         <!-- ######################### -->
 
         <div class="form-group" hidden="@Hide_DropsBeforeBreak80kgTwoStrand()">
-            <label for="dropsBeforeBreak80kgTwoStrand" class="rope-add-label">Drops Before Break [80kg, Two Strand]</label>
+            <label for="dropsBeforeBreak80kgTwoStrand" class="rope-add-label">Drops Before Break [80kg, Two Strand<span hidden="@IsNotHalfTwinOrTriple()"> (T)</span>]</label>
             <SfNumericTextBox @bind-Value="rope.DropsBeforeBreak80kgTwoStrand" class="form-control" id="dropsBeforeBreak80kgTwoStrand"
                               TValue="int?"
                               Width="250px"
@@ -1284,6 +1284,22 @@
     //{
     // Handle category change event if needed
     //}
+
+    private bool IsNotHalfTwinOrTriple()
+    {
+        if (edit) { return !categoryService.IsHalfTwinOrTriple(ropeEdit); }
+        else { return !categoryService.IsHalfTwinOrTriple(rope); }
+    }
+        private bool IsNotHalfTwin()
+    {
+        if (edit) { return !categoryService.IsHalfTwin(ropeEdit); }
+        else { return !categoryService.IsHalfTwin(rope); }
+    }
+    private bool IsNotTriple()
+    {
+        if (edit) { return !categoryService.IsTriple(ropeEdit); }
+        else { return !categoryService.IsTriple(rope); }
+    }
 
     private bool Hide_ImpactForce55kgOneStrand()
     {
