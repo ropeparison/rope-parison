@@ -123,7 +123,7 @@ namespace RopeParison.Logic.Services
 
         public bool Has_DropsBeforeBreak55kgOneStrand(RopeDto rope)
         {
-            Enum[] categories = new Enum[] { Category.Triple, Category.Half };
+            Enum[] categories = new Enum[] { Category.Triple, Category.Half, Category.HalfTwin };
             return RopeCategoryCheck(rope, categories);
         }
 
