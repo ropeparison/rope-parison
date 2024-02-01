@@ -1274,7 +1274,16 @@
         rope = new RopeDto();
         ropeEdit = new RopeDto();
 
-        editContext = new EditContext(new RopeDto()); //Set edit context to empty rope. Otherwise edit context holds onto values from the previous edit context and can allow submit when no rope/ropeEdit selected.
+        //Reset edit context.
+        //Otherwise edit context holds onto values from the previous edit context and can allow submit when no rope/ropeEdit selected.
+        if (edit || approveEdit)
+        {
+            editContext = new EditContext(ropeEdit);
+        }
+        else
+        {
+            editContext = new EditContext(rope);
+        }
     }
 
     private void FormInvalidSubmit() //EditContext editContext
