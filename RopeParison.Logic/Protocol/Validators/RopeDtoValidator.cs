@@ -17,9 +17,9 @@ namespace RopeParison.Logic.Protocol.Validators
 
             RuleFor(p => p.Name).NotEmpty().WithMessage(MustBeSpecified("Name"));
             RuleFor(p => p.Name).MaximumLength(150).WithMessage("Name cannot be longer than 150 characters.");
-            RuleFor(p => p.Name).Must(x => true).WithMessage("Name must be unique.")
-                .When(p => _ropeService.IsRopeNameUnique(p.RopeId, p.Name)); //Better way of doing this? Not sure how to call the method from inside the must, can't provide p.RopeId.
-
+            RuleFor(p => p.Name).Must(x => false).WithMessage("Name must be unique.")
+                .When(p => !_ropeService.IsRopeNameUnique(p.RopeId, p.Name)); //Better way of doing this? Not sure how to call the method from inside the must, can't provide p.RopeId.
+            
             RuleFor(p => p.Brand).NotEmpty().WithMessage(MustBeSpecified("Brand"));
 
             RuleFor(p => p.Category).NotEmpty().WithMessage(MustBeSpecified("Category"));

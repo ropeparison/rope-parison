@@ -427,8 +427,9 @@ namespace RopeParison.Data.Services
         {
             using (var db = _dbContextFactory.CreateDbContext())
             {
-                bool test = db.Ropes.Where(r => r.RopeId != ropeId).Any(r => r.Name == name);
-                return !test;
+                bool duplicate = db.Ropes.Where(r => r.RopeId != ropeId).Any(r => r.Name == name);
+                var unique = !duplicate;
+                return unique;
             }
         }
 
