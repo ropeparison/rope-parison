@@ -27,11 +27,11 @@ else
 
         <div class="row sidebar-row-buttongroup">
             <SfButtonGroup Mode="Syncfusion.Blazor.SplitButtons.SelectionMode.Multiple" CssClass="e-small e-flat e-round-corner">
-                <ButtonGroupButton CssClass="@(inc_SelectedSingle ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedSingle">Single</ButtonGroupButton>
-                <ButtonGroupButton CssClass="@(inc_SelectedHalf ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalf">Half</ButtonGroupButton>
-                <ButtonGroupButton CssClass="@(inc_SelectedTwin ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedTwin">Twin</ButtonGroupButton>
-                <ButtonGroupButton CssClass="@(inc_SelectedHalfTwin ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalfTwin">HalfTwin</ButtonGroupButton>
-                <ButtonGroupButton CssClass="@(inc_SelectedTriple ? "e-primary" : "")" @onclick="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedTriple">Triple</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedSingle ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedSingle">Single</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedHalf ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalf">Half</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedTwin ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedTwin">Twin</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedHalfTwin ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalfTwin">HalfTwin</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedTriple ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedTriple">Triple</ButtonGroupButton>
             </SfButtonGroup>
         </div>
         <div class="row sidebar-row-multiselect">
