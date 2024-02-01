@@ -11,6 +11,8 @@ namespace RopeParison.Logic.Services
         List<CategoryDto> GetAllCategorys(); //Deliberate incorrect pluralisation
 
         //Category checks
+        bool IsHalf(RopeDto rope);
+        bool IsTwin(RopeDto rope);
         bool IsHalfTwinOrTriple(RopeDto rope);
         bool IsHalfTwin(RopeDto rope);
         bool IsTriple(RopeDto rope);
@@ -53,6 +55,17 @@ namespace RopeParison.Logic.Services
         // Category Checks
         //--------------------------------------------------------------------------------------------------
 
+
+        public bool IsTwin(RopeDto rope)
+        {
+            Enum[] categories = new Enum[] { Category.Twin };
+            return RopeCategoryCheck(rope, categories);
+        }
+        public bool IsHalf(RopeDto rope)
+        {
+            Enum[] categories = new Enum[] { Category.Half };
+            return RopeCategoryCheck(rope, categories);
+        }
         public bool IsHalfTwinOrTriple(RopeDto rope)
         {
             Enum[] categories = new Enum[] { Category.Triple, Category.HalfTwin };

@@ -843,6 +843,20 @@
         }
         <!-- ######################### -->
 
+        @if (add && IsHalf())
+        {
+            <div class="form-group">
+                <div class="half-twin-category-warn">Half ropes are often dual certified as twin ropes, please check this rope is not dual certified as a twin before adding.</div>
+            </div>
+        }
+        @if (add && IsTwin())
+        {
+            <div class="form-group">
+                <div class="half-twin-category-warn">Twin ropes are often dual certified as half ropes, please check this rope is not dual certified as a half before adding.</div>
+            </div>
+        }
+
+
         @if (add)
         {
             <SfButton CssClass="e-primary">Add Rope</SfButton>
@@ -884,6 +898,11 @@
     .e-eye-slash::before {
         content: '@passwordTextBox_IconCode';
         font-family: e-icons;
+    }
+
+    .half-twin-category-warn {
+        display: inline-block;
+        color: orange;
     }
 </style>
 
@@ -1284,6 +1303,15 @@
     //{
     // Handle category change event if needed
     //}
+
+    private bool IsHalf()
+    {
+        return categoryService.IsHalf(rope);
+    }
+    private bool IsTwin()
+    {
+        return categoryService.IsTwin(rope);
+    }
 
     private bool IsNotHalfTwinOrTriple()
     {
