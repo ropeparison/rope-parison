@@ -11,7 +11,7 @@
 {
     <div class="sidebar-content">
         <div class="row sidebar-row-multiselect">
-            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_RopeListSelectedId" TItem="RopeDto" DataSource="@inc_RopeListChoose" Placeholder="Ropes">
+            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_RopeListSelectedId" TItem="RopeDto" DataSource="@inc_RopeListChooseFrom" Placeholder="Ropes">
                 <MultiSelectFieldSettings Value="RopeId" Text="Name"></MultiSelectFieldSettings>
                 <MultiSelectEvents TValue="List<int>" TItem="RopeDto" ValueChange="@ProcessRopeInclusion"></MultiSelectEvents>
             </SfMultiSelect>
@@ -35,7 +35,7 @@ else
             </SfButtonGroup>
         </div>
         <div class="row sidebar-row-multiselect">
-            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_BrandListSelectedId" TItem="BrandDto" DataSource="@inc_BrandListChoose" Placeholder="Brands">
+            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_BrandListSelectedId" TItem="BrandDto" DataSource="@inc_BrandListChooseFrom" Placeholder="Brands">
                 <MultiSelectFieldSettings Value="BrandId" Text="Name"></MultiSelectFieldSettings>
                 <MultiSelectEvents TValue="List<int>" TItem="BrandDto" ValueChange="@ProcessRopeInclusion"></MultiSelectEvents>
             </SfMultiSelect>
@@ -111,9 +111,9 @@ else
     private double[] inc_RangeSheathPercentage = { 0.25, 0.6 };
     private bool inc_IncRangeSheathPercentage = false;
 
-    private List<BrandDto> inc_BrandListChoose = new List<BrandDto>();
+    private List<BrandDto> inc_BrandListChooseFrom = new List<BrandDto>();
     private List<int> inc_BrandListSelectedId = new List<int>();
-    private List<RopeDto> inc_RopeListChoose = new List<RopeDto>();
+    private List<RopeDto> inc_RopeListChooseFrom = new List<RopeDto>();
     private List<int> inc_RopeListSelectedId = new List<int>();
 
     private bool inc_OptionA = true;
@@ -125,23 +125,23 @@ else
 
     protected override void OnInitialized()
     {
-        inc_BrandListChoose = brandService.GetAllBrands();
-        GetRopeListChoose();
+        inc_BrandListChooseFrom = brandService.GetAllBrands();
+        GetRopeListChooseFrom();  
 
         ProcessRopeInclusion();
     }
 
-    private void GetRopeListChoose()
+    private void GetRopeListChooseFrom()
     {
         if (inc_IncludeUnverified)
-            inc_RopeListChoose = ropeService.GetRopes_All();
+            inc_RopeListChooseFrom = ropeService.GetRopes_All();
         else
-            inc_RopeListChoose = ropeService.GetRopes_Verified(true);
+            inc_RopeListChooseFrom = ropeService.GetRopes_Verified(true);
     }
 
     private void inc_IncludeUnverifiedChanged()
     {
-        GetRopeListChoose();
+        GetRopeListChooseFrom();
         ProcessRopeInclusion();
     }
 
