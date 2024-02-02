@@ -1078,7 +1078,14 @@
         }
         else
         {
-            rope = ropeService.GetRopeById(ropeId_Selected);
+            if (approveEdit)
+            {
+                rope = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
+            }
+            else
+            {
+                rope = ropeService.GetRopeById(ropeId_Selected);
+            }
             ropeEdit = new RopeDto();
         }
     }
