@@ -1025,16 +1025,7 @@
         if (ropeId.HasValue && ropeId > 0)
         {
             ropeId_Selected = ropeId.Value;
-            if (edit)
-            {
-                rope = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
-                ropeEdit = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
-            }
-            else
-            {
-                rope = ropeService.GetRopeById(ropeId.Value);
-                ropeEdit = new RopeDto();
-            }
+            GetRopeAndRopeEdit();
         }
         else
         {
@@ -1043,38 +1034,12 @@
             rope = new RopeDto();
             ropeEdit = new RopeDto();
         }
+        RenewEditContext();
 
         categorys = categoryService.GetAllCategorys();
         brands = brandService.GetAllBrands();
 
-        if (delete)
-        {
-            ropes = ropeService.GetRopes_All();
-
-            editContext = new EditContext(rope);
-        }
-        else if (approveEdit)
-        {
-            ropes = ropeService.GetRopes_WithEditSuggestions();
-
-            editContext = new EditContext(rope);
-        }
-        else if (verify)
-        {
-            ropes = ropeService.GetRopes_Verified(false);
-
-            editContext = new EditContext(rope);
-        }
-        else if (edit)
-        {
-            ropes = ropeService.GetRopes_All();
-
-            editContext = new EditContext(ropeEdit);
-        }
-        else //add
-        {
-            editContext = new EditContext(rope);
-        }
+        GetRopes();
     }
 
     private async Task passwordTextBoxOnCreate()
@@ -1100,21 +1065,56 @@
     {
         if (ropeId_Selected > 0)
         {
-            if (edit || approveEdit)
-            {
-                rope = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
-                ropeEdit = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected); //need deep clone of rope, duplicate fetch easier.
-
-                editContext = new EditContext(ropeEdit);
-            }
-            else
-            {
-                rope = ropeService.GetRopeById(ropeId_Selected);
-                ropeEdit = new RopeDto();
-
-                editContext = new EditContext(rope);
-            }
+            GetRopeAndRopeEdit();
+            RenewEditContext();
         }
+    }
+    private void GetRopeAndRopeEdit()
+    {
+        if (edit)
+        {
+            rope = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
+            ropeEdit = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected); //need deep clone of rope, duplicate fetch easier.
+        }
+        else
+        {
+            rope = ropeService.GetRopeById(ropeId_Selected);
+            ropeEdit = new RopeDto();
+        }
+    }
+    private void RenewEditContext()
+    {
+        if (edit)
+        {
+            editContext = new EditContext(ropeEdit);
+        }
+        else
+        {
+            editContext = new EditContext(rope);
+        }
+    }
+    private void GetRopes()
+    {
+        if (delete)
+        {
+            ropes = ropeService.GetRopes_All();
+        }
+        else if (approveEdit)
+        {
+            ropes = ropeService.GetRopes_WithEditSuggestions();
+        }
+        else if (verify)
+        {
+            ropes = ropeService.GetRopes_Verified(false);
+        }
+        else if (edit)
+        {
+            ropes = ropeService.GetRopes_All();
+        }
+        else //add
+        {
+            //No rope list required.
+        }        
     }
 
     private void AddRope()
@@ -1275,27 +1275,9 @@
         ropeEdit = new RopeDto();
 
         //Reset edit context.
-        //Otherwise edit context holds onto values from the previous edit context and can allow submit when no rope/ropeEdit selected.
-        if (edit || approveEdit)
-        {
-            editContext = new EditContext(ropeEdit);
-        }
-        else
-        {
-            editContext = new EditContext(rope);
-        }
+        //Otherwise edit context holds onto values from the previous edit context and results in unexpected behaviour.
+        RenewEditContext();
     }
-
-    private void FormInvalidSubmit() //EditContext editContext
-    {
-        var invalidSubmit = "InvalidSubmit";
-    }
-
-    private void Cancel()
-    {
-        // Perform any cancel logic or navigation
-    }
-
 
     private void RefreshRope_WithEditSuggestions()
     {
@@ -1312,6 +1294,9 @@
     //{
     // Handle category change event if needed
     //}
+
+    //----------------------------------------------------------------------------------------------
+    //Category checks
 
     private bool IsHalf()
     {
@@ -1406,4 +1391,7 @@
         if (edit) { return !categoryService.Has_DropsBeforeBreak80kgTwoStrand(ropeEdit); }
         else { return !categoryService.Has_DropsBeforeBreak80kgTwoStrand(rope); }
     }
+
+    //Category checks END
+    //----------------------------------------------------------------------------------------------
 }
