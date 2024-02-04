@@ -10,8 +10,8 @@
         <span class="rope-edit-suggestion">@item</span>
         @if (approveEdit)
         {
-            <SfButton @onclick="() => ApproveEditSuggestion.InvokeAsync()" CssClass="e-flat" IsPrimary="true" Content="Approve"></SfButton>
-            <SfButton @onclick="() => DeleteEditSuggestion.InvokeAsync()" CssClass="e-flat" IsPrimary="true" Content="Reject"></SfButton>
+            <SfButton @onclick="() => ApproveEditSuggestion.InvokeAsync()" type="button" CssClass="e-flat" IsPrimary="true" Content="Approve"></SfButton>
+            <SfButton @onclick="() => DeleteEditSuggestion.InvokeAsync()" type="button" CssClass="e-flat" IsPrimary="true" Content="Reject"></SfButton>
         }
     </div>
 }
