@@ -34,6 +34,7 @@ namespace RopeParison.Data.Services
             using (var db = _dbContextFactory.CreateDbContext())
             {
                 IQueryable<Brand> brands = db.Brands;
+                brands = brands.OrderBy(b => b.Name); //Default order alphabetically.
 
                 var brandList = brands.ToList();
                 
