@@ -440,6 +440,8 @@ namespace RopeParison.Data.Services
         private IQueryable<Rope> GetAllRopesQueryable(DataContext db)
         {
             IQueryable<Rope> ropes = db.Ropes.Include(r => r.Brand).Include(r => r.RopeCalculatedParameterSet);
+            ropes = ropes.OrderBy(r => r.Name); //Default sort alphabetically.
+
             return ropes;
         }
 
