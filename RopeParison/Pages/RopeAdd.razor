@@ -42,11 +42,22 @@
     else if (add)
     {
         <h3>Add Rope</h3>
-        <p>Add new ropes to RopeParison here.</p>
-        <p>Ropes added here are 'unverified' ropes until checked and marked as verified by an admin.</p>
-        <p>Unverified ropes are not included in the ropes table or graphs by default, but can be included using the 'Include Unverified Ropes' checkbox in the Rope Selector.</p>
+        <p class="paragraph">Add new ropes to RopeParison here.</p>
+        if (!showMore)
+        {
+            <span @onclick="() => ShowMore()" class="show-more">Show more...</span>
+        }
+        else
+        {
+            <p class="paragraph">Ropes added here are 'unverified' ropes until checked and marked as verified by an admin. Unverified ropes are not included in the ropes table or graphs by default, but can be included using the 'Include Unverified Ropes' checkbox in the Rope Selector.</p>
+            <p class="paragraph">Please try not to include the diameter in the rope name unless necessary. Sometimes it is unavoidable, some manufactures (e.g. Tendon, Black Diamond) have multiple ropes with the same name but different diameters.</p>
+            <p class="paragraph">Please try not to add multiple version of the same rope. E.g. Do not add the normal, dry and eco versions of a rope if they all have the same properties - if they have different properties, please do add them as separate ropes!</p>
+            <p class="paragraph">Please try and source information from the brand/manufacturer where possible, rather than getting information from retailer websites.</p>
+            <p class="paragraph">Sheath percentage and sheath slippage figures are often not given by manufacturers, these fields can be left blank if neccessary. Please don't make up numbers!</p>
+            <span @onclick="() => ShowLess()" class="show-more">Show less...</span>
+        }
     }
-    <hr/>
+    <hr id="topSeparator"/>
 
     @if (edit || verify || approveEdit || delete)
     {
@@ -904,6 +915,27 @@
         display: inline-block;
         color: orange;
     }
+
+    .show-more {
+        font-size: 10px;
+        color: blue;
+        margin: 0px;
+        padding: 0px;
+    }
+
+    .show-more:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .paragraph {
+        margin-top: 1em;
+        margin-bottom: 0em;
+    }
+
+    #topSeparator {
+        margin-top: 0.3em;
+    }
 </style>
 
 @code {
@@ -925,6 +957,8 @@
     private bool verify { get; set; } = false;
     private bool approveEdit { get; set; } = false;
     private bool delete { get; set; } = false;
+
+    private bool showMore { get; set; } = false;
 
     private int ropeId_Selected = 0;
 
@@ -1059,6 +1093,15 @@
             passwordTextBox_InputType = InputType.Password;
             passwordTextBox_IconCode = "\\e7de"; //eye open
         }
+    }
+
+    private void ShowMore()
+    {
+        showMore = true;
+    }
+    private void ShowLess()
+    {
+        showMore = false;
     }
 
     private void RopeUpdated()
