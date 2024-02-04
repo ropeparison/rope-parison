@@ -68,6 +68,9 @@ namespace RopeParison.Logic.Services
         }
         //-------------------------------------------------------------------------
 
+        //#############################################################
+        //GetRopes
+
         public List<RopeDto> GetRopes_All()
         {
             return _ropeDataService.GetRopes_All();
@@ -88,6 +91,20 @@ namespace RopeParison.Logic.Services
             return _ropeDataService.GetRopes_WithEditSuggestions();
         }
 
+        public List<RopeDto> GetRopes_FilteredA(RopeFilterADto filter)
+        {
+            var ropes = new List<RopeDto>();
+
+            ropes = _ropeDataService.GetRopes_FilteredA(filter);
+
+            return ropes;
+        }
+
+        public List<RopeDto> GetRopes_FilteredB(RopeFilterDto filter)
+        {
+            return _ropeDataService.GetRopes_FilteredB(filter);
+        }
+
         public RopeDto GetRopeById(int ropeId)
         {
             return _ropeDataService.GetRopeById(ropeId);
@@ -97,6 +114,10 @@ namespace RopeParison.Logic.Services
         {
             return _ropeDataService.GetRopeById_IncEditSuggestions(ropeId);
         }
+
+        //GetRopes END
+        //#############################################################
+
 
         public void AddRope(RopeDto ropeDto)
         {
@@ -198,10 +219,7 @@ namespace RopeParison.Logic.Services
             _ropeDataService.VerifyRope(ropeId);
         }
 
-        public List<RopeDto> GetRopes_FilteredB(RopeFilterDto filter)
-        {
-            return _ropeDataService.GetRopes_FilteredB(filter);
-        }
+
 
         public bool IsRopeNameUnique(int ropeId, string name)
         {
@@ -735,14 +753,5 @@ namespace RopeParison.Logic.Services
         //------------------------------------------------------------------------------------------------------------
         //RopePropertyInformationsEND
         //------------------------------------------------------------------------------------------------------------
-
-        public List<RopeDto> GetRopes_FilteredA(RopeFilterADto filter)
-        {
-            var ropes = new List<RopeDto>();
-
-            ropes = _ropeDataService.GetRopes_FilteredA(filter);
-
-            return ropes;
-        }
     }
 }
