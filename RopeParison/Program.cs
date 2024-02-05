@@ -9,6 +9,7 @@ using Syncfusion.Blazor;
 using Serilog;
 using RopeParison.Security;
 using RopeParison.GraphHelpers;
+using RopeParison.SidebarHelpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,7 @@ builder.Services.AddTransient<IPasswordSecurityService, PasswordSecurityService>
 builder.Services.AddTransient<IPasswordService, PasswordService>();
 
 builder.Services.AddTransient<IGraphService, GraphService>();
+builder.Services.AddTransient<ISidebarService, SidebarService>();
 
 builder.Services.AddDbContextFactory<DataContext>((DbContextOptionsBuilder options) => options.UseSqlServer(dataConnectionString));
 builder.Services.AddDbContextFactory<SecurityContext>((DbContextOptionsBuilder options) => options.UseSqlServer(securityConnectionString));
