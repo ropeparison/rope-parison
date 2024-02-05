@@ -241,26 +241,57 @@ else
         );
 
         var xDouble = false;
+        var xInt = false;
+        var xNumeric = false;
         var yDouble = false;
+        var yInt = false;
+        var yNumeric = false;
         var bubbleSizeDouble = false;
-        if (chartXAxisRoPrIn.Type == RopePropertyInformationType.Double || chartXAxisRoPrIn.Type == RopePropertyInformationType.Int)
+        var bubbleSizeInt = false;
+        var bubbleSizeNumeric = false;
+        if (chartXAxisRoPrIn.Type == RopePropertyInformationType.Double)
             xDouble = true;
-        if (chartYAxisRoPrIn.Type == RopePropertyInformationType.Double || chartYAxisRoPrIn.Type == RopePropertyInformationType.Int)
+        if (chartXAxisRoPrIn.Type == RopePropertyInformationType.Int)
+            xInt = true;
+        if (xDouble || xInt)
+            xNumeric = true;
+        if (chartYAxisRoPrIn.Type == RopePropertyInformationType.Double)
             yDouble = true;
-        if (chartBubbleSizeRoPrIn.Type == RopePropertyInformationType.Double || chartBubbleSizeRoPrIn.Type == RopePropertyInformationType.Int)
+        if (chartYAxisRoPrIn.Type == RopePropertyInformationType.Int)
+            yInt = true;
+        if (yDouble || yInt)
+            yNumeric = true;
+        if (chartBubbleSizeRoPrIn.Type == RopePropertyInformationType.Double)
             bubbleSizeDouble = true;
+        if (chartBubbleSizeRoPrIn.Type == RopePropertyInformationType.Int)
+            bubbleSizeInt = true;
+        if (bubbleSizeDouble || bubbleSizeInt)
+            bubbleSizeNumeric = true;
 
         foreach (var rope in ropes)
         {
             rope.InformationText = $"{rope.Name}:::{rope.Diameter.ToString("N1")}:::{rope.Brand.Name}:::{chartXAxisRoPrIn.Name}:::{rope[chartXAxisRoPrIn.LogicalName]}:::{chartXAxisRoPrIn.Unit}:::{chartYAxisRoPrIn.Name}:::{rope[chartYAxisRoPrIn.LogicalName]}:::{chartYAxisRoPrIn.Unit}:::{chartBubbleSizeRoPrIn.Name}:::{rope[chartBubbleSizeRoPrIn.LogicalName]}:::{chartBubbleSizeRoPrIn.Unit}";
-        
-            //For reasons known best to themselves syncfusion blazor only allow nested data binding on the y-axis and don't seem to allow category (basically discrete, relevantly for us string) data on the y-axis.
+            //rope.InformationText = "A:::B:::C:::D:::E:::F:::G:::H:::I:::J:::K:::L:::M:::N:::O:::P:::Q:::R";
+
+            //----------------------------------------
+            //X-Y-BubbleSize Plot Values
+
+            //For reasons known best to themselves syncfusion blazor only allow nested data binding on the y-axis (see line graph).
+            //Also, they don't seem to allow category (basically discrete, relevantly for us string) data on the y-axis.
             //Have to do this annoying workaround. Raise bug/feature request with syncfusion.
+
+            //Possible null values is ok. E.g. for unknown sheath percentage.
+            //If the value is null it will just not be plotted, which is desired behaviour.
 
             //X
             if (xDouble)
             {
-                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as double?; //Should deal with null.
+                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as double?;
+                rope.XString = null;
+            }
+            else if (xInt)
+            {
+                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as int?; //Have to get int values as int? not as double?.
                 rope.XString = null;
             }
             else
@@ -275,6 +306,10 @@ else
                 rope.YDouble = rope[chartYAxisRoPrIn.LogicalName] as double?;
                 rope.YString = null;
             }
+            else if (yInt)
+            {
+                rope.YDouble = rope[chartYAxisRoPrIn.LogicalName] as int?;
+            }
             else
             {
                 rope.YDouble = null;
@@ -287,20 +322,26 @@ else
                 rope.BubbleSizeDouble = rope[chartBubbleSizeRoPrIn.LogicalName] as double?;
                 rope.BubbleSizeString = null;
             }
+            else if (bubbleSizeInt)
+            {
+                rope.BubbleSizeDouble = rope[chartBubbleSizeRoPrIn.LogicalName] as int?;
+                rope.BubbleSizeString = null;
+            }
             else
             {
                 rope.BubbleSizeDouble = null;
                 rope.BubbleSizeString = rope[chartBubbleSizeRoPrIn.LogicalName] as string;
             }
+            //----------------------------------------
         }
 
         chartSeriesList.Add(
             new SeriesData
             {
                 DataSource = ropes,
-                XName = xDouble ? "XDouble" : "XString",
-                YName = yDouble ? "YDouble" : "YString",
-                Size = bubbleSizeDouble ? "BubbleSizeDouble" : "BubbleSizeDouble",
+                XName = xNumeric ? "XDouble" : "XString",
+                YName = yNumeric ? "YDouble" : "YString",
+                Size = bubbleSizeNumeric ? "BubbleSizeDouble" : "BubbleSizeDouble",
                 XAxisName = "XAxis1",
                 YAxisName = "YAxis1",
             }

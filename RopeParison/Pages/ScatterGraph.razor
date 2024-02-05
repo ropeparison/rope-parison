@@ -258,13 +258,6 @@ else
             //----------------------------------------
             //X-Y Plot Values
 
-            //For reasons known best to themselves syncfusion blazor only allow nested data binding on the y-axis.
-            //Also, they don't seem to allow category (basically discrete, relevantly for us string) data on the y-axis.
-            //Have to do this annoying workaround. Raise bug/feature request with syncfusion.
-
-            //Possible null values is ok. E.g. for unknown sheath percentage.
-            //If the value is null it will just not be plotted, which is desired behaviour.
-
             //X
             if (xDouble)
             {
@@ -273,7 +266,7 @@ else
             }
             else if (xInt)
             {
-                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as int?; //Have to get int values as int? not as double?.
+                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as int?;
                 rope.XString = null;
             }
             else
