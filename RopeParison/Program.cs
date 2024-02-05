@@ -8,6 +8,7 @@ using RopeParison.Data.Services;
 using Syncfusion.Blazor;
 using Serilog;
 using RopeParison.Security;
+using RopeParison.GraphHelpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,8 @@ builder.Services.AddTransient<ICategoryService, CategoryService>();
 
 builder.Services.AddTransient<IPasswordSecurityService, PasswordSecurityService>();
 builder.Services.AddTransient<IPasswordService, PasswordService>();
+
+builder.Services.AddTransient<IGraphService, GraphService>();
 
 builder.Services.AddDbContextFactory<DataContext>((DbContextOptionsBuilder options) => options.UseSqlServer(dataConnectionString));
 builder.Services.AddDbContextFactory<SecurityContext>((DbContextOptionsBuilder options) => options.UseSqlServer(securityConnectionString));
