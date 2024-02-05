@@ -3,9 +3,7 @@
 @using RopeParison.Protocol;
 @using System.Linq
 @using RopeParison.GraphHelpers
-
-
-
+@using RopeParison.SidebarHelpers
 
 
 <SfMediaQuery @ref="mediaQuery" @bind-ActiveBreakPoint="activeBreakpoint"></SfMediaQuery>
@@ -33,13 +31,13 @@ else
     ShowBackdrop="@sidebarShowBackdrop"
     Type="@sidebarType"
     @bind-IsOpen="sidebarOpen"
-    Changed="@SidebarOpenCloseChanged">
+    Changed="() => sidebarService.SidebarSetToggleText(out sidebarToggleText, sidebarOpen, hideOptionsText, showOptionsText)">
         
     <ChildContent>
 
         <div class="title-header">
             <div class="inline-element">Options </div>
-            <SfButton CssClass="right e-flat e-round" @onclick="CloseSidebar" IconCss="fa-solid fa-xmark"></SfButton>
+            <SfButton CssClass="right e-flat e-round" @onclick="() => sidebarService.CloseSidebar(out sidebarOpen)" IconCss="fa-solid fa-xmark"></SfButton>
             
         </div>
 
@@ -60,7 +58,7 @@ else
     <div><!--This div seems pointless, but is the only way so far to make the sidebar push feature succesfully push all content in the target div. It only seems to push the first div inside the target div.-->
         <div>
             <h3 class="inline-element">Scatter</h3>
-            <SfButton IsToggle="true" @onclick="SidebarToggle" CssClass="right e-flat" IsPrimary="true" Content="@sidebarToggleContent"></SfButton>
+            <SfButton IsToggle="true" @onclick="() => sidebarService.SidebarToggleOpen(ref sidebarOpen)" CssClass="right e-flat" IsPrimary="true" Content="@sidebarToggleText"></SfButton>
         </div>
 
         <div class="grid-dimensions">
@@ -116,6 +114,8 @@ else
     //-----------------------------------------------
     [Inject]
     private IGraphService graphService { get; set; }
+    [Inject]
+    private ISidebarService sidebarService { get; set; }
     //-----------------------------------------------
     //ServicesEND
     //-----------------------------------------------
@@ -159,9 +159,9 @@ else
     private static readonly string SHOW_OPTIONS = "Show Options";
     private static readonly string HIDE_OPTIONS = "Hide Options";
     private static readonly string OPTIONS = "Options";
-    private string showOptions = "";
-    private string hideOptions = "";
-    private string sidebarToggleContent = OPTIONS;
+    private string showOptionsText = "";
+    private string hideOptionsText = "";
+    private string sidebarToggleText = OPTIONS;
     //------------------------------------------------------------------------------------
     //SidebarEND
     //------------------------------------------------------------------------------------
@@ -203,7 +203,7 @@ else
         GetChartData();
     }
 
-    private async Task GetChartData()
+    private async void GetChartData()
     {
         chartDisplay = false;
         StateHasChanged(); //Totally remove chart from DOM. It does not render properly (various problems) if axes/data are changed. Needs to be removed and re-added, so it re-renders initially.
@@ -324,63 +324,8 @@ else
     //---------------------------------------------------------------------------------
     private void SetSidebarSettings(bool isInit)
     {
-        if (isSmall)
-        {
-            if (isInit)
-            {
-                sidebarOpen = true; //Decided to open with sidebar in small mode.
-            }
-            sidebarCloseOnDocumentClick = true;
-            sidebarEnableGestures = true;
-            sidebarShowBackdrop = true;
-            sidebarType = SidebarType.Over; //For some reason changing sidebar type causes sidebar to close if it's open. No resolution as yet.
-            showOptions = OPTIONS;
-            hideOptions = OPTIONS;
-            sidebarToggleContent = showOptions;
-        }
-        else
-        {
-            if (isInit)
-            {
-                sidebarOpen = true;
-            }
-            sidebarCloseOnDocumentClick = false;
-            sidebarEnableGestures = false;
-            sidebarShowBackdrop = false;
-            sidebarType = SidebarType.Push;
-            showOptions = SHOW_OPTIONS;
-            hideOptions = HIDE_OPTIONS;
-        }
-    }
-
-    private void SidebarToggle()
-    {
-        if (sidebarOpen)
-        {
-            sidebarOpen = false;
-        }
-        else
-        {
-            sidebarOpen = true;
-        }
-    }
-
-    public void CloseSidebar()
-    {
-        sidebarOpen = false;
-    }
-
-    public void SidebarOpenCloseChanged()
-    {
-        if (sidebarOpen)
-        {
-            sidebarToggleContent = hideOptions;
-        }
-        else
-        {
-            sidebarToggleContent = showOptions;
-        }
-    }
+        sidebarService.SetSidebarSettings(isSmall, isInit, ref sidebarOpen, out sidebarCloseOnDocumentClick, out sidebarEnableGestures, out sidebarShowBackdrop, out sidebarType, out showOptionsText, out hideOptionsText, in OPTIONS, in SHOW_OPTIONS, in HIDE_OPTIONS, out sidebarToggleText);
+    }    
     //---------------------------------------------------------------------------------
     //SidebarEND
     //---------------------------------------------------------------------------------
