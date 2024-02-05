@@ -277,7 +277,8 @@ else
         chartAxesList.Clear();
         chartSeriesList.Clear();
 
-        chartAxesList.Add(new AxesData
+        chartAxesList.Add(
+            new AxesData
             {
                 Name = "XAxis1",
                 ValueType = GetAxisValueType(chartXAxisRoPrIn.Type),
@@ -285,7 +286,8 @@ else
                 RangePadding = ChartRangePadding.Additional,
             }
         );
-        chartAxesList.Add(new AxesData
+        chartAxesList.Add(
+            new AxesData
             {
                 Name = "YAxis1",
                 ValueType = GetAxisValueType(chartYAxisRoPrIn.Type),
@@ -295,23 +297,48 @@ else
         );
 
         var xDouble = false;
+        var xInt = false;
+        var xNumeric = false;
         var yDouble = false;
-        if (chartXAxisRoPrIn.Type == RopePropertyInformationType.Double || chartXAxisRoPrIn.Type == RopePropertyInformationType.Int)
+        var yInt = false;
+        var yNumeric = false;
+        if (chartXAxisRoPrIn.Type == RopePropertyInformationType.Double)
             xDouble = true;
-        if (chartYAxisRoPrIn.Type == RopePropertyInformationType.Double || chartYAxisRoPrIn.Type == RopePropertyInformationType.Int)
+        if (chartXAxisRoPrIn.Type == RopePropertyInformationType.Int)
+            xInt = true;
+        if (xDouble || xInt)
+            xNumeric = true;
+        if (chartYAxisRoPrIn.Type == RopePropertyInformationType.Double)
             yDouble = true;
+        if (chartYAxisRoPrIn.Type == RopePropertyInformationType.Int)
+            yInt = true;
+        if (yDouble || yInt)
+            yNumeric = true;
 
         foreach (var rope in ropes)
         {
             rope.InformationText = $"{rope.Name}:::{rope.Diameter.ToString("N1")}:::{rope.Brand.Name}:::{chartXAxisRoPrIn.Name}:::{rope[chartXAxisRoPrIn.LogicalName]}:::{chartXAxisRoPrIn.Unit}:::{chartYAxisRoPrIn.Name}:::{rope[chartYAxisRoPrIn.LogicalName]}:::{chartYAxisRoPrIn.Unit}";
+            //rope.InformationText = "A:::B:::C:::D:::E:::F:::G:::H:::I:::J:::K:::L:::M:::N:::O:::P:::Q:::R";
 
-            //For reasons known best to themselves syncfusion blazor only allow nested data binding on the y-axis and don't seem to allow category (basically discrete, relevantly for us string) data on the y-axis.
+            //----------------------------------------
+            //X-Y Plot Values
+
+            //For reasons known best to themselves syncfusion blazor only allow nested data binding on the y-axis.
+            //Also, they don't seem to allow category (basically discrete, relevantly for us string) data on the y-axis.
             //Have to do this annoying workaround. Raise bug/feature request with syncfusion.
+
+            //Possible null values is ok. E.g. for unknown sheath percentage.
+            //If the value is null it will just not be plotted, which is desired behaviour.
 
             //X
             if (xDouble)
             {
-                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as double?; //Should deal with null.
+                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as double?;
+                rope.XString = null;
+            }
+            else if (xInt)
+            {
+                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as int?; //Have to get int values as int? not as double?.
                 rope.XString = null;
             }
             else
@@ -326,18 +353,25 @@ else
                 rope.YDouble = rope[chartYAxisRoPrIn.LogicalName] as double?;
                 rope.YString = null;
             }
+            else if (yInt)
+            {
+                rope.YDouble = rope[chartYAxisRoPrIn.LogicalName] as int?;
+                rope.YString = null;
+            }
             else
             {
                 rope.YDouble = null;
                 rope.YString = rope[chartYAxisRoPrIn.LogicalName] as string;
             }
+            //----------------------------------------
         }
 
-        chartSeriesList.Add(new SeriesData
+        chartSeriesList.Add(
+            new SeriesData
             {
                 DataSource = ropes,
-                XName = xDouble ? "XDouble" : "XString",//chartXAxisRoPrIn.LogicalName,
-                YName = yDouble ? "YDouble" : "YString",//chartYAxisRoPrIn.LogicalName,
+                XName = xNumeric ? "XDouble" : "XString",//chartXAxisRoPrIn.LogicalName,
+                YName = yNumeric ? "YDouble" : "YString",//chartYAxisRoPrIn.LogicalName,
                 XAxisName = "XAxis1",// + GetSeries1AxisName(chartXAxisRoPrIn.Type),
                 YAxisName = "YAxis1",// + GetSeries1AxisName(chartYAxisRoPrIn.Type),
             }
