@@ -60,7 +60,6 @@ else
     <div><!--This div seems pointless, but is the only way so far to make the sidebar push feature succesfully push all content in the target div. It only seems to push the first div inside the target div.-->
         <div>
             <h3 class="inline-element">Scatter</h3>
-            <!--<SfButton IsToggle="true" @onclick="AdvancedOptionsToggle" CssClass="right e-flat" IsPrimary="true" Content="@advancedOptionsToggleContent"></SfButton>-->
             <SfButton IsToggle="true" @onclick="SidebarToggle" CssClass="right e-flat" IsPrimary="true" Content="@sidebarToggleContent"></SfButton>
         </div>
 
@@ -116,7 +115,7 @@ else
     //Services
     //-----------------------------------------------
     [Inject]
-    private IRopeService ropeService { get; set; }
+    private IGraphService graphService { get; set; }
     //-----------------------------------------------
     //ServicesEND
     //-----------------------------------------------
@@ -167,11 +166,6 @@ else
     //SidebarEND
     //------------------------------------------------------------------------------------
 
-    private static readonly string SHOW_ADVANCED_OPTIONS = "Show Advanced Options";
-    private static readonly string HIDE_ADVANCED_OPTIONS = "Hide Advanced Options";
-    private string advancedOptionsToggleContent = SHOW_ADVANCED_OPTIONS;
-    private bool showAdvancedOptions = false;
-
     //**********************************************************************************************************************************************************************************************
     //DeclarationsEND
     //**********************************************************************************************************************************************************************************************
@@ -191,37 +185,10 @@ else
     //---------------------------------------------------------------------------------
     private void SetChartSettings(bool isInit)
     {
-        if (showAdvancedOptions)
-        {
-            //gridToolbarItems = new string[] { "ColumnChooser" };
-        }
-        else
-        {
-            //gridToolbarItems = null;
-        }
-
         if (isInit)
         {
             chartXAxisRoPrIn = ropePropertyInformations.StaticElongation80kgOneStrand;
             chartYAxisRoPrIn = ropePropertyInformations.DynamicElongation80kgOneStrand;
-        }
-
-        //if (chartRopes != null)
-        //{
-        //chartRopes.Refresh();
-        //}
-    }
-    private void SetChartWidth()
-    {
-        if (isSmall)
-        {
-            //gridWidth = GRID_WIDTH_SMALL;
-            //gridColWidthMax = GRID_COL_WIDTH_MAX_SMALL;
-        }
-        else
-        {
-            //gridWidth = GRID_WIDTH_LARGE;
-            //gridColWidthMax = GRID_COL_WIDTH_MAX_LARGE;
         }
     }
 
@@ -234,38 +201,6 @@ else
     {
         chartYAxisRoPrIn = roPrIn;
         GetChartData();
-    }
-    private Syncfusion.Blazor.Charts.ValueType GetAxisValueType(RopePropertyInformationType ropePropertyInformationType)
-    {
-        if (new Enum[] { RopePropertyInformationType.Double, RopePropertyInformationType.Int }.Contains(ropePropertyInformationType))
-        {
-            return Syncfusion.Blazor.Charts.ValueType.Double;
-        }
-        else if (new Enum[] { RopePropertyInformationType.String }.Contains(ropePropertyInformationType))
-        {
-            return Syncfusion.Blazor.Charts.ValueType.Category;
-        }
-        else
-        {
-            //Shouldn't get here. Use double as default
-            return Syncfusion.Blazor.Charts.ValueType.Double;
-        }
-    }
-    private string GetSeries1AxisName(RopePropertyInformationType ropePropertyInformationType)
-    {
-        if (new Enum[] { RopePropertyInformationType.Double, RopePropertyInformationType.Int }.Contains(ropePropertyInformationType))
-        {
-            return "Axis1";
-        }
-        else if (new Enum[] { RopePropertyInformationType.String }.Contains(ropePropertyInformationType))
-        {
-            return "Axis2";
-        }
-        else
-        {
-            //Shouldn't get here. Use Axis1 as default
-            return "Axis1";
-        }
     }
 
     private async Task GetChartData()
@@ -281,7 +216,7 @@ else
             new AxesData
             {
                 Name = "XAxis1",
-                ValueType = GetAxisValueType(chartXAxisRoPrIn.Type),
+                ValueType = graphService.GetAxisValueType(chartXAxisRoPrIn.Type),
                 Title = chartXAxisRoPrIn.NameUnit,
                 RangePadding = ChartRangePadding.Additional,
             }
@@ -290,7 +225,7 @@ else
             new AxesData
             {
                 Name = "YAxis1",
-                ValueType = GetAxisValueType(chartYAxisRoPrIn.Type),
+                ValueType = graphService.GetAxisValueType(chartYAxisRoPrIn.Type),
                 Title = chartYAxisRoPrIn.NameUnit,
                 RangePadding = ChartRangePadding.Additional,
             }
@@ -370,10 +305,10 @@ else
             new SeriesData
             {
                 DataSource = ropes,
-                XName = xNumeric ? "XDouble" : "XString",//chartXAxisRoPrIn.LogicalName,
-                YName = yNumeric ? "YDouble" : "YString",//chartYAxisRoPrIn.LogicalName,
-                XAxisName = "XAxis1",// + GetSeries1AxisName(chartXAxisRoPrIn.Type),
-                YAxisName = "YAxis1",// + GetSeries1AxisName(chartYAxisRoPrIn.Type),
+                XName = xNumeric ? "XDouble" : "XString",
+                YName = yNumeric ? "YDouble" : "YString",
+                XAxisName = "XAxis1",
+                YAxisName = "YAxis1",
             }
         );
 
@@ -449,27 +384,6 @@ else
     //---------------------------------------------------------------------------------
     //SidebarEND
     //---------------------------------------------------------------------------------
-
-    private void AdvancedOptionsToggle()
-    {
-        if (showAdvancedOptions)
-        {
-            showAdvancedOptions = false;
-            //gridAllowFiltering = false;
-            //gridShowColumnChooser = false;
-            advancedOptionsToggleContent = SHOW_ADVANCED_OPTIONS;
-        }
-        else
-        {
-            showAdvancedOptions = true;
-            //gridAllowFiltering = true;
-            //gridShowColumnChooser = true;
-            advancedOptionsToggleContent = HIDE_ADVANCED_OPTIONS;
-        }
-
-        bool isInit = false;
-        SetChartSettings(isInit);
-    }
 
     //----------------------------------------------------------------------------------
     //RopeInclusion
