@@ -33,7 +33,7 @@ namespace RopeParison.Logic.Protocol.Validators
             //RuleFor(p => p.SheathPercentage).NotEmpty().WithMessage(MustBeSpecified("Sheath %"));
             //RuleFor(p => p.SheathPercentage).GreaterThan(0).WithMessage(NotZeroOrLess("Sheath %"));
             //RuleFor(p => p.SheathPercentage).LessThan(100).WithMessage(Not100OrMore("Sheath %"));
-            //Not all ropes specify sheath percentage. Annoying.
+            //Not all ropes specify sheath percentage. Annoying. Not a required field.
 
             RuleFor(p => p.ImpactForce55kgOneStrand).NotEmpty().WithMessage(MustBeSpecified("Impact Force (55kg, One Strand)"))
                 .When(p => p.Has_ImpactForce55kgOneStrand());
@@ -74,7 +74,8 @@ namespace RopeParison.Logic.Protocol.Validators
                 .When(p => p.Has_DynamicElongation80kgTwoStrand());
             RuleFor(p => p.DynamicElongation80kgTwoStrand).GreaterThan(0).WithMessage(NotZeroOrLess("Dynamic Elongation (80kg, Two Strand)"))
                 .When(p => p.Has_DynamicElongation80kgTwoStrand());
-            _ropeService = ropeService;
+
+            //Not all ropes specify sheath slippage. Annoying. Not a required field.
         }
 
         public string MustBeSpecified(string param)
