@@ -15,8 +15,9 @@ namespace RopeParison.Data.Model
 
         public double Diameter { get; set; }
         public double MassPerUnitLength { get; set; }
-        public double? SheathPercentage { get; set; }
-        
+        public double? SheathPercentage { get; set; } //Nullable. Often not specified.
+
+        //Nullable. Not all ropes have values for all ImpactForce, StaticElong, DynamicElong, DropsBefore options.
         public double? ImpactForce55kgOneStrand { get; set; }
         public double? ImpactForce80kgOneStrand { get; set; }
         public double? ImpactForce80kgTwoStrand { get; set; }
@@ -32,7 +33,7 @@ namespace RopeParison.Data.Model
         public int? DropsBeforeBreak80kgOneStrand { get; set; }
         public int? DropsBeforeBreak80kgTwoStrand { get; set; }
 
-        public double? SheathSlippage { get; set; }
+        public double? SheathSlippage { get; set; } //Nullable. Often not specified.
 
         public virtual RopeCalculatedParameterSet RopeCalculatedParameterSet { get; set; }
 
