@@ -121,10 +121,10 @@
         }
         @if (edit || approveEdit)
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.Category != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.Category))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.Category != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.Category))
                 {
                     <RP_RopeEditSuggestion item="@item.Category.DisplayName" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -156,10 +156,10 @@
         }
         @if (edit || approveEdit)
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.Name != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.Name))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.Name != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.Name))
                 {
                     <RP_RopeEditSuggestion item="@item.Name" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -195,10 +195,10 @@
         }
         @if (edit || approveEdit)
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.Brand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.Brand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.Brand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.Brand))
                 {
                     <RP_RopeEditSuggestion item="@item.Brand.Name" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -237,10 +237,10 @@
         }
         @if (edit || approveEdit)
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.Diameter != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.Diameter))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.Diameter != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.Diameter))
                 {
                     <RP_RopeEditSuggestion item="@item.Diameter" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -278,10 +278,10 @@
         }
         @if (edit || approveEdit)
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.MassPerUnitLength != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.MassPerUnitLength))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.MassPerUnitLength != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.MassPerUnitLength))
                 {
                     <RP_RopeEditSuggestion item="@item.MassPerUnitLength" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -319,12 +319,19 @@
         }
         @if (edit || approveEdit)
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.SheathPercentage != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.SheathPercentage))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.SheathPercentage != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.SheathPercentage))
                 {
-                    <RP_RopeEditSuggestion item="@item.SheathPercentage" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                    if (item.SheathPercentage == null)
+                    {
+                        <RP_RopeEditSuggestion item="@("Unknown")" approveEdit="approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                    }
+                    else
+                    {
+                        <RP_RopeEditSuggestion item="item.SheathPercentage" approveEdit="approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                    }
                 }
             }
             <RP_RopePropertySeparator></RP_RopePropertySeparator>
@@ -360,12 +367,19 @@
         }
         @if (edit || approveEdit)
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.SheathSlippage != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.SheathSlippage))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.SheathSlippage != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.SheathSlippage))
                 {
-                    <RP_RopeEditSuggestion item="@item.SheathSlippage" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                    if (item.SheathSlippage == null)
+                    {
+                        <RP_RopeEditSuggestion item="@("Unknown")" approveEdit="approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                    }
+                    else 
+                    {
+                        <RP_RopeEditSuggestion item="@item.SheathSlippage" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
+                    }
                 }
             }
             <RP_RopePropertySeparator></RP_RopePropertySeparator>
@@ -405,10 +419,10 @@
         }
         @if (!Hide_ImpactForce55kgOneStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.ImpactForce55kgOneStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.ImpactForce55kgOneStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.ImpactForce55kgOneStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.ImpactForce55kgOneStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.ImpactForce55kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -446,10 +460,10 @@
         }
         @if (!Hide_ImpactForce80kgOneStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.ImpactForce80kgOneStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.ImpactForce80kgOneStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.ImpactForce80kgOneStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.ImpactForce80kgOneStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.ImpactForce80kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -487,10 +501,10 @@
         }
         @if (!Hide_ImpactForce80kgTwoStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.ImpactForce80kgTwoStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.ImpactForce80kgTwoStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.ImpactForce80kgTwoStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.ImpactForce80kgTwoStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.ImpactForce80kgTwoStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -532,10 +546,10 @@
         }
         @if (!Hide_StaticElongation80kgOneStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.StaticElongation80kgOneStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.StaticElongation80kgOneStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.StaticElongation80kgOneStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.StaticElongation80kgOneStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.StaticElongation80kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -573,10 +587,10 @@
         }
         @if (!Hide_StaticElongation80kgTwoStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.StaticElongation80kgTwoStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.StaticElongation80kgTwoStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.StaticElongation80kgTwoStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.StaticElongation80kgTwoStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.StaticElongation80kgTwoStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -621,10 +635,10 @@
         }
         @if (Show_DynamicElongation55kgOneStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.DynamicElongation55kgOneStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DynamicElongation55kgOneStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DynamicElongation55kgOneStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.DynamicElongation55kgOneStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.DynamicElongation55kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -665,10 +679,10 @@
         }
         @if (Show_DynamicElongation80kgOneStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.DynamicElongation80kgOneStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DynamicElongation80kgOneStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DynamicElongation80kgOneStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.DynamicElongation80kgOneStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.DynamicElongation80kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -709,10 +723,10 @@
         }
         @if (Show_DynamicElongation80kgTwoStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.DynamicElongation80kgTwoStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DynamicElongation80kgTwoStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DynamicElongation80kgTwoStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.DynamicElongation80kgTwoStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.DynamicElongation80kgTwoStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -756,10 +770,10 @@
         }
         @if (!Hide_DropsBeforeBreak55kgOneStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.DropsBeforeBreak55kgOneStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DropsBeforeBreak55kgOneStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DropsBeforeBreak55kgOneStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.DropsBeforeBreak55kgOneStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.DropsBeforeBreak55kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -799,10 +813,10 @@
         }
         @if (!Hide_DropsBeforeBreak80kgOneStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.DropsBeforeBreak80kgOneStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DropsBeforeBreak80kgOneStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DropsBeforeBreak80kgOneStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.DropsBeforeBreak80kgOneStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.DropsBeforeBreak80kgOneStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -842,10 +856,10 @@
         }
         @if (!Hide_DropsBeforeBreak80kgTwoStrand() && (edit || approveEdit))
         {
-            @if (rope.RopeEditSuggestions.Any(x => x.DropsBeforeBreak80kgTwoStrand != null))
+            @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DropsBeforeBreak80kgTwoStrand))
             {
                 <RP_AlreadyProposedEdits edit="@edit"></RP_AlreadyProposedEdits>
-                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.DropsBeforeBreak80kgTwoStrand != null))
+                @foreach (var item in rope.RopeEditSuggestions.Where(x => x.RopeProperty == RopeProperty.DropsBeforeBreak80kgTwoStrand))
                 {
                     <RP_RopeEditSuggestion item="@item.DropsBeforeBreak80kgTwoStrand" approveEdit="@approveEdit" ApproveEditSuggestion="() => ApproveEditSuggestion(item.RopeEditSuggestionId)" DeleteEditSuggestion="() => DeleteEditSuggestion(item.RopeEditSuggestionId)"></RP_RopeEditSuggestion>
                 }
@@ -853,6 +867,8 @@
             <RP_RopePropertySeparator></RP_RopePropertySeparator>
         }
         <!-- ######################### -->
+
+        <!-- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
 
         @if (add && IsHalf())
         {

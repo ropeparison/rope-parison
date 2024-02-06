@@ -5,6 +5,9 @@ namespace RopeParison.Protocol
     public class RopeEditSuggestionDto
     {
         public int RopeEditSuggestionId { get; set; }
+
+        public RopeProperty RopeProperty { get; set; }
+
         public string? Name { get; set; }
         public int? BrandId { get; set; }
         public virtual BrandDto? Brand { get; set; }

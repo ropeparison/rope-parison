@@ -503,30 +503,35 @@ namespace RopeParison.Data.Services
 
         private void UpdateRope(Rope rope, RopeEditSuggestion rES)
         {
-            if (rES.Name != null) { rope.Name = rES.Name; }
-            if (rES.BrandId != null) { UpdateRopeBrand(rope, rES.BrandId.Value); }
-            if (rES.Category != null) { rope.Category = rES.Category.Value; }
+            if (rES.RopeProperty == RopeProperty.Name) { rope.Name = rES.Name; }
+            else if (rES.RopeProperty == RopeProperty.Brand && rES.BrandId.HasValue) { UpdateRopeBrand(rope, rES.BrandId.Value); }
+            else if (rES.RopeProperty == RopeProperty.Category && rES.Category.HasValue) { rope.Category = rES.Category.Value; }
 
-            if (rES.Diameter != null) { rope.Diameter = rES.Diameter.Value; }
-            if (rES.MassPerUnitLength != null) { rope.MassPerUnitLength = rES.MassPerUnitLength.Value; }
-            if (rES.SheathPercentage != null) { rope.SheathPercentage = rES.SheathPercentage.Value; }
+            else if (rES.RopeProperty == RopeProperty.Diameter && rES.Diameter.HasValue) { rope.Diameter = rES.Diameter.Value; }
+            else if (rES.RopeProperty == RopeProperty.MassPerUnitLength && rES.MassPerUnitLength.HasValue) { rope.MassPerUnitLength = rES.MassPerUnitLength.Value; }
+            else if (rES.RopeProperty == RopeProperty.SheathPercentage) { rope.SheathPercentage = rES.SheathPercentage; }
 
-            if (rES.ImpactForce55kgOneStrand != null) { rope.ImpactForce55kgOneStrand = rES.ImpactForce55kgOneStrand.Value; }
-            if (rES.ImpactForce80kgOneStrand != null) { rope.ImpactForce80kgOneStrand = rES.ImpactForce80kgOneStrand.Value; }
-            if (rES.ImpactForce80kgTwoStrand != null) { rope.ImpactForce80kgTwoStrand = rES.ImpactForce80kgTwoStrand.Value; }
+            else if (rES.RopeProperty == RopeProperty.ImpactForce55kgOneStrand) { rope.ImpactForce55kgOneStrand = rES.ImpactForce55kgOneStrand; }
+            else if (rES.RopeProperty == RopeProperty.ImpactForce80kgOneStrand) { rope.ImpactForce80kgOneStrand = rES.ImpactForce80kgOneStrand; }
+            else if (rES.RopeProperty == RopeProperty.ImpactForce80kgTwoStrand) { rope.ImpactForce80kgTwoStrand = rES.ImpactForce80kgTwoStrand; }
 
-            if (rES.StaticElongation80kgOneStrand != null) { rope.StaticElongation80kgOneStrand = rES.StaticElongation80kgOneStrand.Value; }
-            if (rES.StaticElongation80kgTwoStrand != null) { rope.StaticElongation80kgTwoStrand = rES.StaticElongation80kgTwoStrand.Value; }
+            else if (rES.RopeProperty == RopeProperty.StaticElongation80kgOneStrand) { rope.StaticElongation80kgOneStrand = rES.StaticElongation80kgOneStrand; }
+            else if (rES.RopeProperty == RopeProperty.StaticElongation80kgTwoStrand) { rope.StaticElongation80kgTwoStrand = rES.StaticElongation80kgTwoStrand; }
 
-            if (rES.DynamicElongation55kgOneStrand != null) { rope.DynamicElongation55kgOneStrand = rES.DynamicElongation55kgOneStrand.Value; }
-            if (rES.DynamicElongation80kgOneStrand != null) { rope.DynamicElongation80kgOneStrand = rES.DynamicElongation80kgOneStrand.Value; }
-            if (rES.DynamicElongation80kgTwoStrand != null) { rope.DynamicElongation80kgTwoStrand = rES.DynamicElongation80kgTwoStrand.Value; }
+            else if (rES.RopeProperty == RopeProperty.DynamicElongation55kgOneStrand) { rope.DynamicElongation55kgOneStrand = rES.DynamicElongation55kgOneStrand; }
+            else if (rES.RopeProperty == RopeProperty.DynamicElongation80kgOneStrand) { rope.DynamicElongation80kgOneStrand = rES.DynamicElongation80kgOneStrand; }
+            else if (rES.RopeProperty == RopeProperty.DynamicElongation80kgTwoStrand) { rope.DynamicElongation80kgTwoStrand = rES.DynamicElongation80kgTwoStrand; }
 
-            if (rES.DropsBeforeBreak55kgOneStrand != null) { rope.DropsBeforeBreak55kgOneStrand = rES.DropsBeforeBreak55kgOneStrand.Value; }
-            if (rES.DropsBeforeBreak80kgOneStrand != null) { rope.DropsBeforeBreak80kgOneStrand = rES.DropsBeforeBreak80kgOneStrand.Value; }
-            if (rES.DropsBeforeBreak80kgTwoStrand != null) { rope.DropsBeforeBreak80kgTwoStrand = rES.DropsBeforeBreak80kgTwoStrand.Value; }
+            else if (rES.RopeProperty == RopeProperty.DropsBeforeBreak55kgOneStrand) { rope.DropsBeforeBreak55kgOneStrand = rES.DropsBeforeBreak55kgOneStrand; }
+            else if (rES.RopeProperty == RopeProperty.DropsBeforeBreak80kgOneStrand) { rope.DropsBeforeBreak80kgOneStrand = rES.DropsBeforeBreak80kgOneStrand; }
+            else if (rES.RopeProperty == RopeProperty.DropsBeforeBreak80kgTwoStrand) { rope.DropsBeforeBreak80kgTwoStrand = rES.DropsBeforeBreak80kgTwoStrand; }
 
-            if (rES.SheathSlippage != null) { rope.SheathSlippage = rES.SheathSlippage.Value; }
+            else if (rES.RopeProperty == RopeProperty.SheathSlippage) { rope.SheathSlippage = rES.SheathSlippage; }
+
+            else
+            {
+                throw new Exception($"Error applying RopeEditSuggestion: {rES.RopeEditSuggestionId}, RopeProperty: {rES.RopeProperty}.");
+            }
         }
 
         private void UpdateRopeBrand(Rope rope, int brandId)
@@ -545,6 +550,9 @@ namespace RopeParison.Data.Services
         private void UpdateRopeEditSuggestion(RopeEditSuggestion rES, RopeEditSuggestionDto rESDto)
         {
             rES.RopeEditSuggestionId = rESDto.RopeEditSuggestionId;
+
+            rES.RopeProperty = rESDto.RopeProperty;
+
             rES.Name = rESDto.Name;
             rES.BrandId = rESDto.BrandId;
             rES.Category = rESDto.Category?.ToModel();

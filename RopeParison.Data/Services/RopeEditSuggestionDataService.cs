@@ -57,6 +57,8 @@ namespace RopeParison.Data.Services
             //Calculate CalculatedParameterSet
             if (model != null && dto != null)
             {
+                model.RopeProperty = dto.RopeProperty;
+
                 model.Name = dto.Name;
                 model.BrandId = dto.BrandId;
                 //model.Brand = dto.Brand != null ? dto.Brand. : null;
@@ -92,6 +94,8 @@ namespace RopeParison.Data.Services
             if (model != null)
             {
                 dto.RopeEditSuggestionId = model.RopeEditSuggestionId;
+
+                dto.RopeProperty = model.RopeProperty;
 
                 dto.Name = model.Name;
                 dto.BrandId = model.BrandId;
