@@ -1,5 +1,6 @@
 ﻿namespace RopeParison.Protocol
 {
+    //This should really be a dictionary with key of RopeProperty Enum. Deal with VisibleColCount separately.
     public class RopePropertyInformationsDto
     {
         public int VisibleColCount { get; set; } = 0;

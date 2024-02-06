@@ -135,31 +135,34 @@ namespace RopeParison.Logic.Services
             RopeEditSuggestionDto rES = new RopeEditSuggestionDto();
 
             //Strategy is a separate RopeEditSuggestion for each individual change.
+            //This is not the most efficient way of doing things. (More efficent to have a separate list of suggestions for each rope property, but more faff.)
+            //It is easy to maintain.
+            //It is easy to look at the raw db data.
             
-            if (rope.Name != ropeEdit.Name) { rES.Name = ropeEdit.Name; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.Brand.BrandId != ropeEdit.Brand.BrandId) { rES.BrandId = ropeEdit.Brand.BrandId; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.Category != ropeEdit.Category) { rES.Category = ropeEdit.Category; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.Name != ropeEdit.Name) { rES.Name = ropeEdit.Name; rES.RopeProperty = RopeProperty.Name; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.Brand.BrandId != ropeEdit.Brand.BrandId) { rES.BrandId = ropeEdit.Brand.BrandId; rES.RopeProperty = RopeProperty.Brand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.Category != ropeEdit.Category) { rES.Category = ropeEdit.Category; rES.RopeProperty = RopeProperty.Category; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
 
-            if (rope.Diameter != ropeEdit.Diameter) { rES.Diameter = ropeEdit.Diameter; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.MassPerUnitLength != ropeEdit.MassPerUnitLength) { rES.MassPerUnitLength = ropeEdit.MassPerUnitLength; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.SheathPercentage != ropeEdit.SheathPercentage) { rES.SheathPercentage = ropeEdit.SheathPercentage; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.Diameter != ropeEdit.Diameter) { rES.Diameter = ropeEdit.Diameter; rES.RopeProperty = RopeProperty.Diameter; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.MassPerUnitLength != ropeEdit.MassPerUnitLength) { rES.MassPerUnitLength = ropeEdit.MassPerUnitLength; rES.RopeProperty = RopeProperty.MassPerUnitLength; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.SheathPercentage != ropeEdit.SheathPercentage) { rES.SheathPercentage = ropeEdit.SheathPercentage; rES.RopeProperty = RopeProperty.SheathPercentage; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
 
-            if (rope.ImpactForce55kgOneStrand != ropeEdit.ImpactForce55kgOneStrand) { rES.ImpactForce55kgOneStrand = ropeEdit.ImpactForce55kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.ImpactForce80kgOneStrand != ropeEdit.ImpactForce80kgOneStrand) { rES.ImpactForce80kgOneStrand = ropeEdit.ImpactForce80kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.ImpactForce80kgTwoStrand != ropeEdit.ImpactForce80kgTwoStrand) { rES.ImpactForce80kgTwoStrand = ropeEdit.ImpactForce80kgTwoStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.ImpactForce55kgOneStrand != ropeEdit.ImpactForce55kgOneStrand) { rES.ImpactForce55kgOneStrand = ropeEdit.ImpactForce55kgOneStrand; rES.RopeProperty = RopeProperty.ImpactForce55kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.ImpactForce80kgOneStrand != ropeEdit.ImpactForce80kgOneStrand) { rES.ImpactForce80kgOneStrand = ropeEdit.ImpactForce80kgOneStrand; rES.RopeProperty = RopeProperty.ImpactForce80kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.ImpactForce80kgTwoStrand != ropeEdit.ImpactForce80kgTwoStrand) { rES.ImpactForce80kgTwoStrand = ropeEdit.ImpactForce80kgTwoStrand; rES.RopeProperty = RopeProperty.ImpactForce80kgTwoStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
 
-            if (rope.StaticElongation80kgOneStrand != ropeEdit.StaticElongation80kgOneStrand) { rES.StaticElongation80kgOneStrand = ropeEdit.StaticElongation80kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.StaticElongation80kgTwoStrand != ropeEdit.StaticElongation80kgTwoStrand) { rES.StaticElongation80kgTwoStrand = ropeEdit.StaticElongation80kgTwoStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.StaticElongation80kgOneStrand != ropeEdit.StaticElongation80kgOneStrand) { rES.StaticElongation80kgOneStrand = ropeEdit.StaticElongation80kgOneStrand; rES.RopeProperty = RopeProperty.StaticElongation80kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.StaticElongation80kgTwoStrand != ropeEdit.StaticElongation80kgTwoStrand) { rES.StaticElongation80kgTwoStrand = ropeEdit.StaticElongation80kgTwoStrand; rES.RopeProperty = RopeProperty.StaticElongation80kgTwoStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
 
-            if (rope.DynamicElongation55kgOneStrand != ropeEdit.DynamicElongation55kgOneStrand) { rES.DynamicElongation55kgOneStrand = ropeEdit.DynamicElongation55kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.DynamicElongation80kgOneStrand != ropeEdit.DynamicElongation80kgOneStrand) { rES.DynamicElongation80kgOneStrand = ropeEdit.DynamicElongation80kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.DynamicElongation80kgTwoStrand != ropeEdit.DynamicElongation80kgTwoStrand) { rES.DynamicElongation80kgTwoStrand = ropeEdit.DynamicElongation80kgTwoStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.DynamicElongation55kgOneStrand != ropeEdit.DynamicElongation55kgOneStrand) { rES.DynamicElongation55kgOneStrand = ropeEdit.DynamicElongation55kgOneStrand; rES.RopeProperty = RopeProperty.DynamicElongation55kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.DynamicElongation80kgOneStrand != ropeEdit.DynamicElongation80kgOneStrand) { rES.DynamicElongation80kgOneStrand = ropeEdit.DynamicElongation80kgOneStrand; rES.RopeProperty = RopeProperty.DynamicElongation80kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.DynamicElongation80kgTwoStrand != ropeEdit.DynamicElongation80kgTwoStrand) { rES.DynamicElongation80kgTwoStrand = ropeEdit.DynamicElongation80kgTwoStrand; rES.RopeProperty = RopeProperty.DynamicElongation80kgTwoStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
 
-            if (rope.DropsBeforeBreak55kgOneStrand != ropeEdit.DropsBeforeBreak55kgOneStrand) { rES.DropsBeforeBreak55kgOneStrand = ropeEdit.DropsBeforeBreak55kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.DropsBeforeBreak80kgOneStrand != ropeEdit.DropsBeforeBreak80kgOneStrand) { rES.DropsBeforeBreak80kgOneStrand = ropeEdit.DropsBeforeBreak80kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
-            if (rope.DropsBeforeBreak80kgTwoStrand != ropeEdit.DropsBeforeBreak80kgTwoStrand) { rES.DropsBeforeBreak80kgTwoStrand = ropeEdit.DropsBeforeBreak80kgTwoStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.DropsBeforeBreak55kgOneStrand != ropeEdit.DropsBeforeBreak55kgOneStrand) { rES.DropsBeforeBreak55kgOneStrand = ropeEdit.DropsBeforeBreak55kgOneStrand; rES.RopeProperty = RopeProperty.DropsBeforeBreak55kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.DropsBeforeBreak80kgOneStrand != ropeEdit.DropsBeforeBreak80kgOneStrand) { rES.DropsBeforeBreak80kgOneStrand = ropeEdit.DropsBeforeBreak80kgOneStrand; rES.RopeProperty = RopeProperty.DropsBeforeBreak80kgOneStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.DropsBeforeBreak80kgTwoStrand != ropeEdit.DropsBeforeBreak80kgTwoStrand) { rES.DropsBeforeBreak80kgTwoStrand = ropeEdit.DropsBeforeBreak80kgTwoStrand; rES.RopeProperty = RopeProperty.DropsBeforeBreak80kgTwoStrand; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
 
-            if (rope.SheathSlippage != ropeEdit.SheathSlippage) { rES.SheathSlippage = ropeEdit.SheathSlippage; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
+            if (rope.SheathSlippage != ropeEdit.SheathSlippage) { rES.SheathSlippage = ropeEdit.SheathSlippage; rES.RopeProperty = RopeProperty.SheathSlippage; _ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES); rES = new RopeEditSuggestionDto(); }
 
             //_ropeDataService.AddRopeEditSuggestion(rope.RopeId, rES);
         }
