@@ -11,6 +11,8 @@ namespace RopeParison.Data.Model
 
         public int RopeId { get; set; }
 
+        public RopeProperty RopeProperty { get; set; } //Indicates which rope property this EditSuggestion is about. Sometimes the EditSuggestion will be to make a value null, which is impossible to identify otherwise!
+
         public string? Name { get; set; }
         public int? BrandId { get; set; }
         public virtual Brand? Brand { get; set; }
