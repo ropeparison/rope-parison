@@ -247,6 +247,13 @@ namespace RopeParison.Logic.Services
 
                     rope.RopeCalculatedParameterSet.SheathThickness = rope.Diameter - coreDiameter;
                 }
+                else
+                {
+                    rope.RopeCalculatedParameterSet.SheathArea = null;
+                    rope.RopeCalculatedParameterSet.CoreArea = null;
+                    rope.RopeCalculatedParameterSet.CoreDiameter = null;
+                    rope.RopeCalculatedParameterSet.SheathThickness = null;
+                }
 
                 rope.RopeCalculatedParameterSet.Density = rope.MassPerUnitLength / (ropeArea * 1000);
             }
