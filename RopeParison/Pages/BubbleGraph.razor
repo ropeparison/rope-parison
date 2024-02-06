@@ -270,69 +270,9 @@ else
 
         foreach (var rope in ropes)
         {
-            rope.InformationText = $"{rope.Name}:::{rope.Diameter.ToString("N1")}:::{rope.Brand.Name}:::{chartXAxisRoPrIn.Name}:::{rope[chartXAxisRoPrIn.LogicalName]}:::{chartXAxisRoPrIn.Unit}:::{chartYAxisRoPrIn.Name}:::{rope[chartYAxisRoPrIn.LogicalName]}:::{chartYAxisRoPrIn.Unit}:::{chartBubbleSizeRoPrIn.Name}:::{rope[chartBubbleSizeRoPrIn.LogicalName]}:::{chartBubbleSizeRoPrIn.Unit}";
-            //rope.InformationText = "A:::B:::C:::D:::E:::F:::G:::H:::I:::J:::K:::L:::M:::N:::O:::P:::Q:::R";
+            graphService.SetXYBubblePlotValues(true, rope, xDouble, xInt, yDouble, yInt, bubbleSizeDouble, bubbleSizeInt, chartXAxisRoPrIn, chartYAxisRoPrIn, chartBubbleSizeRoPrIn);
 
-            //----------------------------------------
-            //X-Y-BubbleSize Plot Values
-
-            //For reasons known best to themselves syncfusion blazor only allow nested data binding on the y-axis (see line graph).
-            //Also, they don't seem to allow category (basically discrete, relevantly for us string) data on the y-axis.
-            //Have to do this annoying workaround. Raise bug/feature request with syncfusion.
-
-            //Possible null values is ok. E.g. for unknown sheath percentage.
-            //If the value is null it will just not be plotted, which is desired behaviour.
-
-            //X
-            if (xDouble)
-            {
-                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as double?;
-                rope.XString = null;
-            }
-            else if (xInt)
-            {
-                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as int?; //Have to get int values as int? not as double?.
-                rope.XString = null;
-            }
-            else
-            {
-                rope.XDouble = null;
-                rope.XString = rope[chartXAxisRoPrIn.LogicalName] as string;
-            }
-
-            //Y
-            if (yDouble)
-            {
-                rope.YDouble = rope[chartYAxisRoPrIn.LogicalName] as double?;
-                rope.YString = null;
-            }
-            else if (yInt)
-            {
-                rope.YDouble = rope[chartYAxisRoPrIn.LogicalName] as int?;
-            }
-            else
-            {
-                rope.YDouble = null;
-                rope.YString = rope[chartYAxisRoPrIn.LogicalName] as string;
-            }
-
-            //Bubble
-            if (bubbleSizeDouble)
-            {
-                rope.BubbleSizeDouble = rope[chartBubbleSizeRoPrIn.LogicalName] as double?;
-                rope.BubbleSizeString = null;
-            }
-            else if (bubbleSizeInt)
-            {
-                rope.BubbleSizeDouble = rope[chartBubbleSizeRoPrIn.LogicalName] as int?;
-                rope.BubbleSizeString = null;
-            }
-            else
-            {
-                rope.BubbleSizeDouble = null;
-                rope.BubbleSizeString = rope[chartBubbleSizeRoPrIn.LogicalName] as string;
-            }
-            //----------------------------------------
+            rope.InformationText = graphService.RopeInformationText(true, rope, chartXAxisRoPrIn, chartYAxisRoPrIn, chartBubbleSizeRoPrIn);
         }
 
         chartSeriesList.Add(

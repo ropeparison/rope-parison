@@ -252,46 +252,9 @@ else
 
         foreach (var rope in ropes)
         {
-            rope.InformationText = $"{rope.Name}:::{rope.Diameter.ToString("N1")}:::{rope.Brand.Name}:::{chartXAxisRoPrIn.Name}:::{rope[chartXAxisRoPrIn.LogicalName]}:::{chartXAxisRoPrIn.Unit}:::{chartYAxisRoPrIn.Name}:::{rope[chartYAxisRoPrIn.LogicalName]}:::{chartYAxisRoPrIn.Unit}";
-            //rope.InformationText = "A:::B:::C:::D:::E:::F:::G:::H:::I:::J:::K:::L:::M:::N:::O:::P:::Q:::R";
+            graphService.SetXYPlotValues(rope, xDouble, xInt, yDouble, yInt, chartXAxisRoPrIn, chartYAxisRoPrIn);
 
-            //----------------------------------------
-            //X-Y Plot Values
-
-            //X
-            if (xDouble)
-            {
-                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as double?;
-                rope.XString = null;
-            }
-            else if (xInt)
-            {
-                rope.XDouble = rope[chartXAxisRoPrIn.LogicalName] as int?;
-                rope.XString = null;
-            }
-            else
-            {
-                rope.XDouble = null;
-                rope.XString = rope[chartXAxisRoPrIn.LogicalName] as string;
-            }
-
-            //Y
-            if (yDouble)
-            {
-                rope.YDouble = rope[chartYAxisRoPrIn.LogicalName] as double?;
-                rope.YString = null;
-            }
-            else if (yInt)
-            {
-                rope.YDouble = rope[chartYAxisRoPrIn.LogicalName] as int?;
-                rope.YString = null;
-            }
-            else
-            {
-                rope.YDouble = null;
-                rope.YString = rope[chartYAxisRoPrIn.LogicalName] as string;
-            }
-            //----------------------------------------
+            rope.InformationText = graphService.RopeInformationText(false, rope, chartXAxisRoPrIn, chartYAxisRoPrIn, new RopePropertyInformationDto());
         }
 
         chartSeriesList.Add(
