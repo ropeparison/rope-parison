@@ -8,6 +8,7 @@ using RopeParison.Data.Services;
 using Syncfusion.Blazor;
 using Serilog;
 using RopeParison.Security;
+using RopeParison.Security.Services;
 using RopeParison.GraphHelpers;
 using RopeParison.SidebarHelpers;
 

@@ -2,16 +2,8 @@
 using RopeParison.Security;
 using RopeParison.Security.Model;
 
-namespace RopeParison.Data.Services
+namespace RopeParison.Security.Services
 {
-
-    public interface IPasswordSecurityService
-    {
-        bool CheckPassword_Verify(string proposedPassword);
-        bool CheckPassword_Edit(string proposedPassword);
-        bool CheckPassword_Delete(string proposedPassword);
-    }
-
     public class PasswordSecurityService : IPasswordSecurityService
     {
         private IDbContextFactory<SecurityContext> _dbSecurityContextFactory;
