@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RopeParison.Data", "RopePar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RopeParison.Protocol", "RopeParison.Protocol\RopeParison.Protocol.csproj", "{1160D1A3-3C96-4916-84BD-45EC156FE812}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RopeParison.Security", "RopeParison.Security\RopeParison.Security.csproj", "{A541B79F-CB7A-4340-A6B5-DD84FC7DAE9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RopeParison.Security", "RopeParison.Security\RopeParison.Security.csproj", "{A541B79F-CB7A-4340-A6B5-DD84FC7DAE9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
