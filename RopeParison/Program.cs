@@ -37,7 +37,7 @@ builder.Services.AddTransient<IRopeService, RopeService>();
 builder.Services.AddTransient<IBrandService, BrandService>();
 builder.Services.AddTransient<ICategoryService, CategoryService>();
 
-builder.Services.AddTransient<IPasswordSecurityService, PasswordSecurityService>();
+builder.Services.AddTransient<IPasswordSecurityService, PasswordSecurityServiceSettingsBased>();
 builder.Services.AddTransient<IPasswordService, PasswordService>();
 
 builder.Services.AddTransient<IGraphService, GraphService>();
