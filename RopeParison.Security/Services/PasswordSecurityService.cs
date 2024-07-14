@@ -19,14 +19,7 @@ namespace RopeParison.Security.Services
             {
                 Password passwordAdd = db.Passwords.Where(x => (int)x.PasswordCategory == (int)PasswordCategory.Verify).First();
 
-                var match = false;
-
-                if (proposedPassword == passwordAdd.PasswordString)
-                {
-                    match = true;
-                }
-                
-                return match;
+                return CheckMatch(proposedPassword, passwordAdd.PasswordString);
             }
         }
 
@@ -36,14 +29,7 @@ namespace RopeParison.Security.Services
             {
                 Password passwordEdit = db.Passwords.Where(x => (int)x.PasswordCategory == (int)PasswordCategory.ApproveEdit).First();
 
-                var match = false;
-
-                if (proposedPassword == passwordEdit.PasswordString)
-                {
-                    match = true;
-                }
-
-                return match;
+                return CheckMatch(proposedPassword, passwordEdit.PasswordString);
             }
         }
 
@@ -51,17 +37,20 @@ namespace RopeParison.Security.Services
         {
             using (var db = _dbSecurityContextFactory.CreateDbContext())
             {
-                Password passwordEdit = db.Passwords.Where(x => (int)x.PasswordCategory == (int)PasswordCategory.Delete).First();
+                Password passwordDelete = db.Passwords.Where(x => (int)x.PasswordCategory == (int)PasswordCategory.Delete).First();
 
-                var match = false;
-
-                if (proposedPassword == passwordEdit.PasswordString)
-                {
-                    match = true;
-                }
-
-                return match;
+                return CheckMatch(proposedPassword, passwordDelete.PasswordString);
             }
+        }
+
+        public static bool CheckMatch(string? proposedPassword, string? password)
+        {
+            if (proposedPassword == null || password == null)
+            {
+                return false; 
+            }
+
+            return string.Equals(proposedPassword, password);
         }
     }
 
