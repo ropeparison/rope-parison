@@ -5,29 +5,29 @@
             var displayDataStr = data.Text;
             @if (displayDataStr != null)
             {
-                var displayData = displayDataStr.Split(":::");
+                var displayData = PointData.GetPointData(displayDataStr);
 
                 <div>
                     <table style="width:100%;  border: 1px solid black; background-color: white">
 
                         <tr>
-                            <th colspan="2">@displayData[2] @displayData[0] @displayData[1]</th>
+                            <th colspan="2">@displayData.BrandName @displayData.Name @displayData.Diameter</th>
                         </tr>
                         <tr>
-                            <td>@displayData[3]:</td>
-                            <td>@displayData[4] @displayData[5]</td>
+                            <td>@displayData.XAxisName:</td>
+                            <td>@displayData.XAxisValue @displayData.XAxisUnit</td>
                         </tr>
                         <tr>
-                            <td>@displayData[6]:</td>
-                            <td>@displayData[7] @displayData[8]</td>
+                            <td>@displayData.YAxisName:</td>
+                            <td>@displayData.YAxisValue @displayData.YAxisUnit</td>
                         </tr>
-                        @if (displayData.Count() > 9)
+                        @if (displayData.IsBubble)
                         {
                             <tr>
-                                <td>@displayData[9]:</td>
-                            <td>@displayData[10] @displayData[11]</td>
-                        </tr>
-                    }
+                                <td>@displayData.BubbleSizeName:</td>
+                                <td>@displayData.BubbleSizeValue @displayData.BubbleSizeUnit</td>
+                            </tr>
+                        }
                     </table>
                 </div>
             }

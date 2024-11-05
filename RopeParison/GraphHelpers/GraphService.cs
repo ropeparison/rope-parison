@@ -40,16 +40,9 @@ namespace RopeParison.GraphHelpers
 
         public string RopeInformationText(bool isBubble, RopeDto rope, RopePropertyInformationDto xRoPrIn, RopePropertyInformationDto yRoPrIn, RopePropertyInformationDto bubbleRoPrIn)
         {
-            var ropeInformationText = $"{rope?.Name}:::{rope?.Diameter.ToString("N1")}:::{rope?.Brand.Name}" +
-                $":::{xRoPrIn.Name}:::{rope?.XString}:::{xRoPrIn.Unit}" +
-                $":::{yRoPrIn.Name}:::{rope?.YString}:::{yRoPrIn.Unit}";
+            PointData pointData = new PointData(isBubble, rope, xRoPrIn, yRoPrIn, bubbleRoPrIn);
 
-            if (isBubble)
-            {
-                ropeInformationText += $":::{bubbleRoPrIn.Name}:::{rope?.BubbleSizeString}:::{bubbleRoPrIn.Unit}";
-            }
-
-            //ropeInformationText = "A:::B:::C:::D:::E:::F:::G:::H:::I:::J:::K:::L:::M:::N:::O:::P:::Q:::R";
+            var ropeInformationText = pointData.GetPointDataJson();
 
             return ropeInformationText;
         }
