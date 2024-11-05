@@ -51,6 +51,7 @@ else
         <label class="sidebar-subheader sidebar-label">Y Axis</label>
         <RP_AttributePicker AttributeSelectionChanged="OnChartYAxisAttributeChanged" initialValue="@chartYAxisRoPrIn.LogicalName" numericOnly="true"></RP_AttributePicker>
 
+        <RP_DisplayOptions DisplayOptionsChanged="OnDisplayOptionsChanged" initialValue="@displayOptions"></RP_DisplayOptions>
     </ChildContent>
 </SfSidebar>
 
@@ -80,16 +81,20 @@ else
                         {
                             <ChartSeries Type="ChartSeriesType.Scatter"
                                 DataSource=@series.DataSource
+                                Name="@series.Name"
                                 XName=@series.XName
                                 YName=@series.YName
+                                Fill="@series.Fill"
                                 YAxisName="@series.YAxisName"
                                 XAxisName="@series.XAxisName">
                                 <ChartMarker>
-                                    <RP_ChartDataLabel></RP_ChartDataLabel>
+                                    <RP_ChartDataLabel Visible="@displayOptions.ChartDataLabelVisible"></RP_ChartDataLabel>
                                 </ChartMarker>
                             </ChartSeries>
                         }
                     </ChartSeriesCollection>
+
+                    <ChartLegendSettings Visible="true" Position="LegendPosition.Top" />
                 </SfChart>
             }
             
@@ -143,6 +148,8 @@ else
     private RopePropertyInformationsDto ropePropertyInformations = new RopePropertyInformationsDto();
     private RopePropertyInformationDto chartXAxisRoPrIn = new RopePropertyInformationDto();
     private RopePropertyInformationDto chartYAxisRoPrIn = new RopePropertyInformationDto();
+
+    private DisplayOptions displayOptions = new DisplayOptions(true);
     //---------------------------------------------------------------------------------
     //ChartEND
     //---------------------------------------------------------------------------------
@@ -203,11 +210,15 @@ else
         GetChartData();
     }
 
+    private async void OnDisplayOptionsChanged(DisplayOptions displayOptionsDto)
+    {
+        displayOptions = displayOptionsDto;
+        await ChartReRender();
+    }
+
     private async void GetChartData()
     {
-        chartDisplay = false;
-        StateHasChanged(); //Totally remove chart from DOM. It does not render properly (various problems) if axes/data are changed. Needs to be removed and re-added, so it re-renders initially.
-        await Task.Delay(1); //Token task delay required to allow component to re-render and remove chart from DOM.
+        await ChartReRenderP1();
 
         chartAxesList.Clear();
         chartSeriesList.Clear();
@@ -257,17 +268,42 @@ else
             rope.InformationText = graphService.RopeInformationText(false, rope, chartXAxisRoPrIn, chartYAxisRoPrIn, new RopePropertyInformationDto());
         }
 
-        chartSeriesList.Add(
-            new SeriesData
-            {
-                DataSource = ropes,
-                XName = xNumeric ? "XDouble" : "XString",
-                YName = yNumeric ? "YDouble" : "YString",
-                XAxisName = "XAxis1",
-                YAxisName = "YAxis1",
-            }
-        );
+        var groupedRopes = ropes.GroupBy(r => r.Category.Category).ToList();
+        groupedRopes = groupedRopes.OrderBy(g => g.Key).ToList();
 
+        foreach (var ropeGroup in groupedRopes)
+        {
+            var category = ropeGroup.Key;
+            chartSeriesList.Add(
+                new SeriesData
+                {
+                    DataSource = ropeGroup.ToList(),
+                    Name = category.ToDto().DisplayName ?? "Error",
+                    XName = xNumeric ? "XDouble" : "XString",
+                    YName = yNumeric ? "YDouble" : "YString",
+                    XAxisName = "XAxis1",
+                    YAxisName = "YAxis1",
+                    Fill = SeriesColors.GetSeriesColor(category),
+                }
+            );
+        }
+
+        ChartReRenderP2();
+    }
+
+    private async Task ChartReRender()
+    {
+        await ChartReRenderP1();
+        ChartReRenderP2();
+    }
+    private async Task ChartReRenderP1()
+    {
+        chartDisplay = false;
+        StateHasChanged(); //Totally remove chart from DOM. It does not render properly (various problems) if axes/data are changed. Needs to be removed and re-added, so it re-renders initially.
+        await Task.Delay(1); //Token task delay required to allow component to re-render and remove chart from DOM.
+    }
+    private void ChartReRenderP2()
+    {
         chartDisplay = true;
         StateHasChanged();
     }

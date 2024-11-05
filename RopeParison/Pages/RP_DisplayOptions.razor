@@ -1,0 +1,41 @@
+﻿@using RopeParison.GraphHelpers;
+@using System.Linq
+
+<div class="h5">
+    Display Options
+</div>
+<div class="sidebar-content">
+    <div class="row sidebar-row-checkbox">
+        <SfCheckBox @bind-Checked="@displayOptions.ChartDataLabelVisible" @onchange="OptionsChanged">Display Data Label</SfCheckBox>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public DisplayOptions initialValue { get; set; }
+
+    [Parameter]
+    public EventCallback<DisplayOptions> DisplayOptionsChanged { get; set; }
+
+    private DisplayOptions displayOptions = new DisplayOptions();
+    //**********************************************************************************************************************************************************************************************
+    //DeclarationsEND
+    //**********************************************************************************************************************************************************************************************
+
+
+    protected override void OnInitialized()
+    {
+        displayOptions = initialValue;
+    }
+
+    private async void OptionsChanged()
+    {
+        await DisplayOptionsChanged.InvokeAsync(displayOptions);
+    }
+}
+
+<style>
+
+
+</style>
