@@ -12,5 +12,6 @@ namespace RopeParison.GraphHelpers
         public string Size { get; set; }
         public string XAxisName { get; set; }
         public string YAxisName { get; set; }
+        public string Fill { get; set; }
     }
 }
