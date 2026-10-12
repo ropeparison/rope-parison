@@ -15,3 +15,7 @@ ASP.NET Core Blazor Server
 Entity Framework Core  
 SQL Server  
 Syncfusion Blazor (thanks to Syncfusion for their community licence)  
+
+## Development
+
+The solution targets .NET 10. See [upgrade and local setup notes](reviews/DOTNET10_UPGRADE.md) and [regression test instructions](RopeParison.Tests/README.md). The original failing cases are fixed. See [defect fixes and remaining work](reviews/DEFECT_FIXES.md). SQL Server integration tests are opt-in; test instructions describe the isolated database setup.
