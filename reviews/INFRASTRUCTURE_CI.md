@@ -22,6 +22,14 @@ Permissions are limited to `contents: read`; checkout does not persist credentia
 
 No Azure resource/state changes, SQL migrations or application deployments are part of this stage. Existing application tests were not repeated because application code did not change. The stage is committed locally after verification; unrelated `CLAUDE.md` and private artifacts remain excluded.
 
+## First GitHub run and portable provider locks
+
+The first push to `major-update` started [run 38278280605](https://github.com/ropeparison/rope-parison/actions/runs/38278280605). Setup and provider installation succeeded, but Ubuntu validation failed because the readonly lock file contained only the Windows unpacked-package (`h1`) checksum. Signed archive (`zh`) checksums were present, but Terraform could not persist the Linux package checksum during readonly initialization and subsequent validation rejected the installed Linux package.
+
+Both modules were relocked using the origin registry and `terraform providers lock -platform=windows_amd64 -platform=linux_amd64`. Terraform verified both packages as signed by HashiCorp. The change adds one Linux `h1` checksum to each lock file; AzureRM remains 4.81.0, version constraints/archive hashes are unchanged, and production backend metadata is unchanged. Readonly initialization and checksum verification remain enabled. The follow-up push reruns the real Ubuntu check; its result is recorded in GitHub Actions.
+
+For future provider changes, refresh both modules' locks for Windows and Linux before committing. See [HashiCorp's platform-aware provider lock command](https://developer.hashicorp.com/terraform/cli/commands/providers/lock).
+
 ## Local use
 
 From the repository root, with the pinned Terraform CLI available on PATH:
