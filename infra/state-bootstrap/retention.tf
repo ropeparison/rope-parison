@@ -8,12 +8,28 @@ resource "azurerm_storage_management_policy" "state_versions" {
     name    = "expire-previous-state-versions"
     enabled = true
     filters {
-      prefix_match = ["tfstate/production.tfstate", "tfstate/bootstrap.tfstate"]
+      prefix_match = ["tfstate/production.tfstate", "tfstate/bootstrap.tfstate", "tfproduction/production.tfstate"]
       blob_types   = ["blockBlob"]
     }
     actions {
       version {
         delete_after_days_since_creation = 90
+      }
+    }
+  }
+  rule {
+    name    = "expire-private-plan-bundles"
+    enabled = true
+    filters {
+      prefix_match = ["tfplans/runs/"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        delete_after_days_since_modification_greater_than = 7
+      }
+      version {
+        delete_after_days_since_creation = 7
       }
     }
   }

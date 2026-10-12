@@ -29,6 +29,7 @@ try {
         Invoke-TerraformCheck -Arguments @("-chdir=$($configuration.Directory)",'validate','-no-color')
     }
     & (Join-Path $PSScriptRoot 'tests/Test-InfraHelpers.ps1')
+    & (Join-Path $PSScriptRoot 'tests/Test-PlanReview.ps1')
     'Infrastructure checks passed; both backends stayed disabled.'
 } finally {
     $env:TF_DATA_DIR = $previousDataDirectory

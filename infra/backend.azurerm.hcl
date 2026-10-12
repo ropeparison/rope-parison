@@ -1,7 +1,7 @@
 # Nonsecret backend settings for the adopted application and shared SQL resources.
 resource_group_name  = "RopeParisonTerraformState"
 storage_account_name = "strpstatead052b7b2015"
-container_name       = "tfstate"
+container_name       = "tfproduction"
 key                  = "production.tfstate"
 use_azuread_auth     = true
 use_cli              = true

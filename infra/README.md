@@ -5,10 +5,12 @@
 On 12 October 2026, the existing resources in subscription `RopeParisonSubscription` (`ad052b7b-2015-4933-93eb-0b857cabccae`) and resource group `RopeParison` were adopted into Terraform. Terraform 1.16.5 and the signed HashiCorp AzureRM 4.81.0 provider were used; provider lock files are included and automatic provider registration remains disabled.
 
 - State setup created four resources: resource group `RopeParisonTerraformState`, Standard LRS account `strpstatead052b7b2015`, private container `tfstate`, and an account-scoped Storage Blob Data Contributor grant for the existing owner. `Microsoft.Storage` was registered explicitly.
-- Both configurations now use the Azure Blob backend with Entra/CLI authentication. Bootstrap state is in `bootstrap.tfstate`; application/shared SQL state is in `production.tfstate`. Bootstrap migration preserved lineage and all resource contents; its serial advanced from 5 to 6 during migration. A private local recovery copy was retained.
+- Both configurations now use the Azure Blob backend with Entra/CLI authentication. Bootstrap state is in `tfstate/bootstrap.tfstate`; application/shared SQL state is now isolated in `tfproduction/production.tfstate`. Bootstrap migration preserved lineage and all resource contents; its serial advanced from 5 to 6 during migration. A private local recovery copy was retained.
 - The guarded adoption plan contained **9 imports, 0 additions, 0 changes, 0 deletions**. Applying that saved plan imported all nine existing resources with the same counts.
 - Exact resource IDs were verified in remote production state. Fresh normal plans for both configurations reported **no changes**.
 - No application deployment, SQL data mutation, EF migration, SQL password rotation or hosting runtime upgrade was performed during adoption.
+
+The subsequent automation stage added three scoped identities/federation and isolated production state/private plans. The bootstrap module now owns 29 managed resources. See [automation details](../reviews/GITHUB_AZURE_AUTOMATION.md).
 
 See [the inventory and ownership map](AZURE_INVENTORY.md) and [state operations and recovery](STATE_OPERATIONS.md). Saved plans, logs, metadata inputs and state exports remain under ignored `private/` folders. Changes are recorded in local commits on `major-update`.
 
@@ -30,7 +32,7 @@ terraform validate
 ./Restore-SqlBaselineInputs.ps1
 ```
 
-Prefer restoring an existing protected, reviewed `private/sql-baseline.tfvars.json` copy when available. Otherwise the restore helper extracts only the SQL inputs from the initialized production state's recorded settings; it does not query live SQL, print/save the full state, or overwrite an existing input file. Review the restored values and the state's provenance before using them, especially if another operator has refreshed or changed state. Do not regenerate desired inputs from current Azure settings during normal planning or CI. Trusted CI must receive a stable reviewed input file from a protected source; that integration is the next stage.
+Prefer restoring an existing protected, reviewed `private/sql-baseline.tfvars.json` copy when available. Otherwise the restore helper extracts only the SQL inputs from the initialized production state's recorded settings; it does not query live SQL, print/save the full state, or overwrite an existing input file. Review the restored values and the state's provenance before using them, especially if another operator has refreshed or changed state. Do not regenerate desired inputs from current Azure settings during normal planning or CI. Trusted CI must receive a stable reviewed input file from a protected source; the manual credentialed workflow now receives them through a protected environment secret.
 
 ## Routine plan and drift inspection
 
@@ -76,7 +78,7 @@ Run the offline helper/deployment regressions with PowerShell 7:
 ./tests/Test-InfraHelpers.ps1
 ```
 
-The application workflow's deploy job requires the repository variable `ROPEPARISON_PRODUCTION_DEPLOYMENT_ENABLED` to equal `true` and the `main` ref. Leave the variable unset/false during release preparation. The job now uses OIDC, with `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` and `AZURE_SUBSCRIPTION_ID` provided through protected GitHub secrets, plus an Azure federated identity and actual `Production` environment protections. No federation or GitHub settings were created by these fixes; deployment remains gated until the next stage configures them.
+The application workflow's deploy job requires the repository variable `ROPEPARISON_PRODUCTION_DEPLOYMENT_ENABLED` to equal `true` and the `main` ref. Leave the variable unset/false during release preparation. The job now uses OIDC, with `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` and `AZURE_SUBSCRIPTION_ID` provided through protected environment variables (nonsecret IDs). The scoped Azure identity, exact environment federation and required-reviewer/branch protections are configured. Both release opt-ins remain false; actual GitHub runner authentication has not yet been exercised.
 
 Before deployment, the workflow verifies the signed-in subscription and compares the published artifact's framework versions with both the Terraform stack and Azure's live `linuxFxVersion`. Changing HCL alone cannot bypass the live-runtime check. These checks do not prove schema compatibility or application health. Coordinate the runtime, artifact, migrations and rollback before enabling deployment. The former publish-profile path is removed from this workflow; revoke its unused credential after verifying the OIDC replacement, as a separate operational step.
 
@@ -86,13 +88,13 @@ SQL retains its existing Basic tier, 2 GiB capacity, Zone backup storage, collat
 
 App settings, connection strings, authentication settings and tags are preserved through lifecycle exclusions. Narrow exclusions also preserve Azure's unset network defaults and Key Vault identity sentinel. These areas are not fully managed or drift-checked yet, and the configuration alone cannot recover app secrets. Hosting remains .NET 7.0 even though the local application is upgraded to .NET 10; runtime and deployment changes need a separate reviewed plan. The deployment gate prevents accidental release while these stacks differ.
 
-State storage uses Entra authentication, HTTPS/TLS 1.2, no anonymous or Shared Key access, blob versioning, and 30-day blob/container soft deletion. The applied `state-bootstrap/retention.tf` policy expires only previous versions older than 90 days from creation under the two reserved state prefixes; current state is preserved. The authenticated endpoint is accessible over the public network. Storage and operations are billable. LRS is within one region; no destructive recovery rehearsal or cost estimate was performed.
+State storage uses Entra authentication, HTTPS/TLS 1.2, no anonymous or Shared Key access, blob versioning, and 30-day blob/container soft deletion. The applied `state-bootstrap/retention.tf` policy expires only previous versions older than 90 days from creation under the three reserved state prefixes; current state is preserved. Private plan bundles have a separate seven-day lifecycle rule with the same 30-day soft-delete protection. The authenticated endpoint is accessible over the public network. Storage and operations are billable. LRS is within one region; no destructive recovery rehearsal or cost estimate was performed.
 
 The follow-up review and verified resolutions are recorded in [Terraform adoption review](../reviews/TERRAFORM_ADOPTION_REVIEW.md) and [Terraform adoption fixes](../reviews/TERRAFORM_ADOPTION_FIXES.md).
 
 ## Next work
 
-1. Configure GitHub-to-Azure workload federation, protected reviewed SQL inputs, trusted plans and a reviewed production apply gate. Credential-free CI checks are implemented; no CI identity or extra access grant has been created yet.
+1. Publish the branch only when authorized and run credential-free checks. The new manual workflow must exist on the default branch before GitHub permits dispatch; after the coordinated merge, verify a plan-only run with both write opt-ins still false. See [GitHub/Azure automation and review procedure](../reviews/GITHUB_AZURE_AUTOMATION.md).
 2. Prepare hosting, schema migrations, application configuration and rollback for the coordinated .NET 10 major release.
 3. Improve secret management and drift coverage, and rehearse state/database recovery with an agreed scope.
 

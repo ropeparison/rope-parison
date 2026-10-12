@@ -39,6 +39,10 @@ dotnet list C:\Users\Luke\source\repos\rope-parison\RopeParison.sln package --vu
 
 Code references below are repository-relative paths and baseline line numbers; they will move as fixes are made.
 
+## GitHub/Azure automation checkpoint — 12 October 2026
+
+Scoped planning, infrastructure apply and app deployment identities/federation are configured, together with required-reviewer/branch protections. Production state is isolated from owner-operated bootstrap state. A manual workflow stores private plans and validates digests, provenance and expiry before applying the exact reviewed file. Forty offline infrastructure/helper/integrity checks pass. Both write opt-ins remain false; no app release, hosting upgrade or SQL mutation is part of this stage. GitHub runner execution waits for authorized publication and availability of the workflow on the default branch. See [setup, permission limits and review procedure](reviews/GITHUB_AZURE_AUTOMATION.md).
+
 ## Priority guide
 
 **P1:** address promptly, or before exposing backend writes to Angular. **P2:** fix as part of the major update. No finding here asserts a confirmed production compromise.

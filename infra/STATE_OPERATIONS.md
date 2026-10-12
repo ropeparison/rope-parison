@@ -2,16 +2,16 @@
 
 ## Backend and ownership
 
-The Azure Blob backend is in subscription `RopeParisonSubscription` (`ad052b7b-2015-4933-93eb-0b857cabccae`), resource group `RopeParisonTerraformState`, account `strpstatead052b7b2015`, private container `tfstate`.
+The Azure Blob backend is in subscription `RopeParisonSubscription` (`ad052b7b-2015-4933-93eb-0b857cabccae`), resource group `RopeParisonTerraformState`, account `strpstatead052b7b2015`, private containers `tfproduction` (application state), `tfstate` (bootstrap state) and `tfplans` (saved review bundles).
 
 | Configuration | Blob key | Managed resources |
 | --- | --- | --- |
-| `infra/` | `production.tfstate` | Four RopeParison app resources and five shared SQL resources |
-| `infra/state-bootstrap/` | `bootstrap.tfstate` | State resource group, storage account, container, owner access grant and previous-version retention policy |
+| `infra/` | `tfproduction/production.tfstate` | Four RopeParison app resources and five shared SQL resources |
+| `infra/state-bootstrap/` | `tfstate/bootstrap.tfstate` | 29 state-storage/access resources, including identities, federation and scoped grants |
 
-Use only the default Terraform workspace. Do not point both configurations at the same key or import the same Azure resource into another state. Future apps reference this shared SQL foundation rather than taking duplicate ownership.
+The old `tfstate/production.tfstate` key is a retained pre-migration copy, not an active backend. The migration preserved lineage and all nine managed resources; serial advanced from 2 to 3. Existing checkouts must update cached backend metadata before further operations. Use only the default Terraform workspace. Do not point both configurations at the same key or import the same Azure resource into another state. Future apps reference this shared SQL foundation rather than taking duplicate ownership.
 
-Backend HCL contains IDs and names, not credentials. Both configurations use Azure CLI sign-in and Entra data-plane authorization. Shared Key and anonymous blob access are disabled. The existing owner has Storage Blob Data Contributor at the storage-account scope; Azure resource-management permissions are separate. A future CI identity will need its own reviewed permissions and workload identity federation. CI/OIDC is not configured yet.
+Backend HCL contains IDs and names, not credentials. Both configurations use Azure CLI sign-in and Entra data-plane authorization. Shared Key and anonymous blob access are disabled. The existing owner has Storage Blob Data Contributor at the storage-account scope; Azure resource-management permissions are separate. Three scoped identities and protected GitHub environments are configured. Planner/applier access is limited to the production-state container and private plans; bootstrap state is inaccessible to CI. Actual GitHub token exchange remains untested. See [automation controls](../reviews/GITHUB_AZURE_AUTOMATION.md).
 
 ## Routine changes
 
@@ -39,7 +39,7 @@ The private `state-bootstrap/private/bootstrap-before-migration.tfstate` recover
 
 ## Recovery
 
-Blob versioning and 30-day blob/container soft deletion are enabled. The previous-version policy declared in `state-bootstrap/retention.tf` was applied on 12 October 2026; see [verification evidence](../reviews/TERRAFORM_ADOPTION_FIXES.md). It only expires previous block-blob versions whose creation age exceeds 90 days, under prefixes `tfstate/production.tfstate` and `tfstate/bootstrap.tfstate`. Current blobs and snapshots have no deletion action. Reserve those prefixes for these state keys; prefix matching also covers names with those strings as a prefix. Age is from version creation, so a long-lived current version may become immediately eligible once superseded. Expiry is asynchronous; a deleted version is additionally protected by the existing 30-day soft-delete window from deletion. This is not a guaranteed 90-day window measured from when a version became previous. Recover state independently of the application's SQL backup/restore process. LRS stores replicas within one region; this is not a cross-region recovery arrangement. No destructive restore rehearsal has been performed.
+Blob versioning and 30-day blob/container soft deletion are enabled. The previous-version policy declared in `state-bootstrap/retention.tf` was applied on 12 October 2026; see [verification evidence](../reviews/TERRAFORM_ADOPTION_FIXES.md). It only expires previous block-blob versions whose creation age exceeds 90 days, under prefixes `tfstate/production.tfstate`, `tfstate/bootstrap.tfstate` and `tfproduction/production.tfstate`. A separate private-plan rule expires current bundles after seven days since last modification and previous versions after seven days since creation; it does not target state blobs. Current state blobs and snapshots have no deletion action. Reserve those prefixes for these state keys; prefix matching also covers names with those strings as a prefix. Age is from version creation, so a long-lived current version may become immediately eligible once superseded. Expiry is asynchronous; a deleted version is additionally protected by the existing 30-day soft-delete window from deletion. This is not a guaranteed 90-day window measured from when a version became previous. Recover state independently of the application's SQL backup/restore process. LRS stores replicas within one region; this is not a cross-region recovery arrangement. No destructive restore rehearsal has been performed.
 
 1. Stop all infrastructure runs. Determine whether the fault is configuration, Azure resource drift, lost access or corrupt/missing state. Confirm the correct account, container and blob key.
 2. Restore Entra/RBAC access if needed using an authorized subscription administrator. Role propagation can take time; keep Shared Key disabled. Loss of access alone does not justify recreating resources.

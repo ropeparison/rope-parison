@@ -34,7 +34,7 @@ An explicit executable can be supplied with `-TerraformPath`. Providers may need
 
 ## Following stage and release policy
 
-Configure narrowly scoped GitHub-to-Azure federation, a protected source for reviewed SQL inputs, trusted infrastructure plans and a reviewed apply path. No CI identity or new access grant has been provisioned yet. Keep untrusted PR validation separate from credentialed operations.
+The following stage configured scoped GitHub-to-Azure identities, protected SQL inputs, isolated production state, trusted private plans and reviewed apply/deploy gates. See [automation setup and pending runner verification](GITHUB_AZURE_AUTOMATION.md). The offline entry point now also runs twenty-five saved-plan integrity checks. Untrusted PR validation stays separate from credentialed operations.
 
 Each completed stage is validated and committed locally on `major-update`. The agreed application, runtime, infrastructure and front-end updates form one coordinated major production release. Preparing a workflow or making a stage commit does not trigger an early application deployment. Hosting, database migrations, artifact compatibility and rollback must be coordinated before production deployment is enabled.
 

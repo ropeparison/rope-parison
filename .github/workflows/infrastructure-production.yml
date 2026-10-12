@@ -1,0 +1,94 @@
+name: Review production infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Request reviewed apply after planning (main only; requires release opt-in)
+        type: boolean
+        default: false
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ropeparison-production-infrastructure
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.repository == 'ropeparison/rope-parison' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/major-update')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Terraform-Plan
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      blob_prefix: ${{ steps.plan.outputs.blob_prefix }}
+      manifest_hash: ${{ steps.plan.outputs.manifest_hash }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read pinned Terraform version
+        id: version
+        shell: pwsh
+        run: |
+          $version = (Get-Content ./infra/.terraform-version -Raw).Trim()
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Invalid Terraform version.' }
+          "version=$version" | Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ steps.version.outputs.version }}
+          terraform_wrapper: false
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Save private plan and safe review summary
+        id: plan
+        shell: pwsh
+        env:
+          ROPEPARISON_SQL_INPUTS_JSON: ${{ secrets.ROPEPARISON_SQL_INPUTS_JSON }}
+          TF_IN_AUTOMATION: 'true'
+        run: ./infra/Invoke-ProductionTerraform.ps1 -Mode Plan
+
+  apply:
+    if: github.ref == 'refs/heads/main' && inputs.apply && vars.ROPEPARISON_INFRASTRUCTURE_APPLY_ENABLED == 'true'
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Terraform-Apply
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read pinned Terraform version
+        id: version
+        shell: pwsh
+        run: |
+          $version = (Get-Content ./infra/.terraform-version -Raw).Trim()
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Invalid Terraform version.' }
+          "version=$version" | Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ steps.version.outputs.version }}
+          terraform_wrapper: false
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Apply the same run's reviewed plan
+        shell: pwsh
+        env:
+          PLAN_PREFIX: ${{ needs.plan.outputs.blob_prefix }}
+          PLAN_MANIFEST_HASH: ${{ needs.plan.outputs.manifest_hash }}
+          TF_IN_AUTOMATION: 'true'
+        run: ./infra/Invoke-ProductionTerraform.ps1 -Mode Apply -BlobPrefix $env:PLAN_PREFIX -ManifestHash $env:PLAN_MANIFEST_HASH
