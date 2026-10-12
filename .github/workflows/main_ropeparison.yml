@@ -9,6 +9,13 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ropeparison-production
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,42 +23,73 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Test infrastructure helpers and deployment guards offline
+        shell: pwsh
+        run: ./infra/tests/Test-InfraHelpers.ps1
+
       - name: Set up .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.x'
-          include-prerelease: true
+          global-json-file: global.json
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
+      - name: Test regression suite
+        run: dotnet test RopeParison.Tests/RopeParison.Tests.csproj --configuration Release --no-build
+
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish RopeParison/RopeParison.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
+    # Explicit opt-in after the coordinated runtime/schema release and OIDC setup.
+    if: github.ref == 'refs/heads/main' && vars.ROPEPARISON_PRODUCTION_DEPLOYMENT_ENABLED == 'true'
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
+      id-token: write
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+          path: publish
+
+      - name: Sign in to Azure with workload federation
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify deployment runtime against configuration and live hosting
+        shell: pwsh
+        run: |
+          $subscription = az account show --query id --output tsv --only-show-errors
+          if ($LASTEXITCODE -ne 0 -or ($subscription -join '').Trim() -ne 'ad052b7b-2015-4933-93eb-0b857cabccae') { throw 'Azure deployment subscription does not match the reviewed target.' }
+          $stack = az webapp config show --subscription ad052b7b-2015-4933-93eb-0b857cabccae --resource-group RopeParison --name ropeparison --query linuxFxVersion --output tsv --only-show-errors
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify the live hosting runtime.' }
+          & ./.github/scripts/Test-DeploymentRuntime.ps1 -RuntimeConfigFile ./publish/RopeParison.runtimeconfig.json -LiveLinuxFxVersion ($stack -join '')
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'ropeparison'
           slot-name: 'Production'
-          package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1BAF5F126642491894AA13AFF06F1C13 }}
+          package: publish

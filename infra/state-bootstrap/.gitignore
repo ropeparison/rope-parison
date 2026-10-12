@@ -1,0 +1,8 @@
+private/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.auto.tfvars
+crash.log
+*.tfvars
