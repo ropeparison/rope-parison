@@ -5,6 +5,7 @@ namespace RopeParison.Protocol
     public class RopeDto
     {
         public int RopeId { get; set; }
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
         public string? Name { get; set; }
         public virtual BrandDto Brand { get; set; }
         public CategoryDto Category { get; set; }

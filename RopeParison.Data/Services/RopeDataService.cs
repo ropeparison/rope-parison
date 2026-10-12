@@ -1,4 +1,4 @@
-﻿using RopeParison.Data;
+using RopeParison.Data;
 using RopeParison.Data.Model;
 using Microsoft.EntityFrameworkCore;
 using RopeParison.Protocol;
@@ -22,11 +22,11 @@ namespace RopeParison.Data.Services
         //Updates
         void AddRope(RopeDto rope);
         void UpdateRope(RopeDto rope);
-        void AddRopeEditSuggestion(int ropeId, RopeEditSuggestionDto rESDto);
-        void ImplementRopeEditSuggestion(int ropeEditSuggestionId);
+        void AddRopeEditSuggestions(int ropeId, byte[] expectedVersion, IReadOnlyList<RopeEditSuggestionDto> suggestions);
+        void ImplementRopeEditSuggestion(int ropeEditSuggestionId, int expectedRopeId, byte[] expectedVersion, Action<RopeDto> prepareForWrite);
         void DeleteRopeEditSuggestion(int ropeEditSuggestionId);
-        void RemoveRope(int ropeId);
-        void VerifyRope(int ropeId);
+        void RemoveRope(int ropeId, byte[] expectedVersion);
+        void VerifyRope(int ropeId, byte[] expectedVersion);
 
         //Other
         bool IsRopeNameUnique(int ropeId, string name);
@@ -101,11 +101,7 @@ namespace RopeParison.Data.Services
 
                 var rope = ropes.FirstOrDefault(r => r.RopeId == ropeId);
 
-                if (rope == null)
-                {
-                    rope = new Rope();
-                    rope.RopeId = 0;
-                }
+                if (rope == null) throw new RopeNotFoundException(ropeId);
                 return ToDto(rope);
             }
         }
@@ -119,11 +115,7 @@ namespace RopeParison.Data.Services
 
                 var rope = ropes.FirstOrDefault(r => r.RopeId == ropeId);
 
-                if (rope == null)
-                {
-                    rope = new Rope();
-                    rope.RopeId = 0;
-                }
+                if (rope == null) throw new RopeNotFoundException(ropeId);
                 return ToDto(rope);
             }
         }
@@ -141,16 +133,18 @@ namespace RopeParison.Data.Services
                     ropes = ropes.Where(r => r.Verified == true);
                 }
 
-                if (filter.RopeIds != null && filter.RopeIds.Any())
+                if (filter.RopeIds != null)
                 {
+                    if (filter.RopeIds.Count == 0) return ropeDtos;
                     ropes = ropes.Where(r => filter.RopeIds.Any(x => r.RopeId == x));
                 }
                 if (filter.BrandIds != null && filter.BrandIds.Any())
                 {
                     ropes = ropes.Where(r => filter.BrandIds.Any(x => r.Brand.BrandId == x));
                 }
-                if (filter.Categorys != null && filter.Categorys.Any())
+                if (filter.Categorys != null)
                 {
+                    if (filter.Categorys.Count == 0) return ropeDtos;
                     List<int> intCategorys = filter.Categorys.Select(x => (int)x).ToList(); //Have to do this because the EF Query Translator isn't yet capable of handling an enum inside an any query.
                     ropes = ropes.Where(r => intCategorys.Any(c => (int)(r.Category) == c));
                 }
@@ -178,14 +172,24 @@ namespace RopeParison.Data.Services
 
                 IQueryable<Rope> query = db.Ropes.Include(r => r.Brand).Include(r => r.RopeCalculatedParameterSet);
 
+                if (!filter.IncludeUnverified)
+                    query = query.Where(r => r.Verified);
+
                 if (filter.Name != null)
                     query = query.Where(r => r.Name == filter.Name);
 
                 if (filter.BrandName != null)
                     query = query.Where(r => r.Brand.Name == filter.BrandName);
 
-                if (filter.CategoryName != null)
-                    query = query.Where(r => r.Category.ToString() == filter.CategoryName);
+                if (!string.IsNullOrWhiteSpace(filter.CategoryName))
+                {
+                    // Parse outside the SQL expression. Unknown names must not broaden results.
+                    var name = filter.CategoryName.Trim();
+                    var categoryName = Enum.GetNames<Category>().FirstOrDefault(n => string.Equals(n, name, StringComparison.OrdinalIgnoreCase));
+                    if (categoryName == null) return new List<RopeDto>();
+                    var category = Enum.Parse<Category>(categoryName);
+                    query = query.Where(r => r.Category == category);
+                }
 
                 if (filter.DiameterMin.HasValue)
                     query = query.Where(r => r.Diameter >= filter.DiameterMin.Value);
@@ -323,7 +327,7 @@ namespace RopeParison.Data.Services
                 UpdateRope(rope, ropeDto);
                 db.Ropes.Add(rope);
 
-                db.SaveChanges();
+                SaveChanges(db);
             }
         }
 
@@ -332,102 +336,130 @@ namespace RopeParison.Data.Services
             using (var db = _dbContextFactory.CreateDbContext())
             {
                 var ropes = GetAllRopesQueryable(db);
-                var rope = ropes.First(r => r.RopeId == ropeDto.RopeId);
+                var rope = ropes.SingleOrDefault(r => r.RopeId == ropeDto.RopeId)
+                    ?? throw new RopeNotFoundException(ropeDto.RopeId);
+                CheckVersion(db, rope, ropeDto.RowVersion);
 
                 UpdateRope(rope, ropeDto);
-
-                db.SaveChanges();
+                // Even a calculation-only update must advance/check the parent version.
+                db.Entry(rope).Property(r => r.Name).IsModified = true;
+                SaveChanges(db);
+                ropeDto.RowVersion = rope.RowVersion.ToArray();
             }
         }
 
-        public void AddRopeEditSuggestion(int ropeId, RopeEditSuggestionDto rESDto)
+        public void AddRopeEditSuggestions(int ropeId, byte[] expectedVersion, IReadOnlyList<RopeEditSuggestionDto> suggestions)
         {
-            RopeEditSuggestion rES = new RopeEditSuggestion();
-            UpdateRopeEditSuggestion(rES, rESDto);
-
-            using (var db = _dbContextFactory.CreateDbContext())
+            if (suggestions.Count == 0) return;
+            if (suggestions.Select(s => s.RopeProperty).Distinct().Count() != suggestions.Count)
+                throw new InvalidOperationException("A submission cannot propose the same field twice.");
+            using var db = _dbContextFactory.CreateDbContext();
+            using var transaction = db.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+            var rope = db.Ropes.SingleOrDefault(r => r.RopeId == ropeId)
+                ?? throw new RopeNotFoundException(ropeId);
+            CheckVersion(db, rope, expectedVersion);
+            var submissionId = Guid.NewGuid();
+            foreach (var dto in suggestions)
             {
-                var rope = db.Ropes.First(r => r.RopeId == ropeId);
-
-                rope.RopeEditSuggestions.Add(rES);
-
-                db.SaveChanges();
+                var suggestion = new RopeEditSuggestion();
+                UpdateRopeEditSuggestion(suggestion, dto);
+                suggestion.RopeEditSuggestionId = 0;
+                suggestion.SubmissionId = submissionId;
+                rope.RopeEditSuggestions.Add(suggestion);
             }
-
+            SaveChanges(db);
+            transaction.Commit();
         }
 
-        public void RemoveRope(int ropeId)
+        public void RemoveRope(int ropeId, byte[] expectedVersion)
         {
             using (var db = _dbContextFactory.CreateDbContext())
             {
                 var rope = db.Ropes.FirstOrDefault(r => r.RopeId == ropeId);
+                if (rope == null) throw new RopeNotFoundException(ropeId);
+                CheckVersion(db, rope, expectedVersion);
                 if (rope != null)
                 {
                     var rES = db.RopeEditSuggestions.Where(x => x.RopeId == ropeId);
                     db.RopeEditSuggestions.RemoveRange(rES);
 
                     db.Ropes.Remove(rope);
-                    db.SaveChanges();
+                    SaveChanges(db);
                 }
             }
         }
 
-        public void VerifyRope(int ropeId)
+        public void VerifyRope(int ropeId, byte[] expectedVersion)
         {
             using (var db = _dbContextFactory.CreateDbContext())
             {
                 var rope = db.Ropes.FirstOrDefault(r => r.RopeId == ropeId);
+                if (rope == null) throw new RopeNotFoundException(ropeId);
+                CheckVersion(db, rope, expectedVersion);
                 if (rope != null)
                 {
                     rope.Verified = true;
-                    db.SaveChanges();
+                    db.Entry(rope).Property(r => r.Verified).IsModified = true;
+                    SaveChanges(db);
                 }
             }
         }
 
-        public void ImplementRopeEditSuggestion(int ropeEditSuggestionId)
+        public void ImplementRopeEditSuggestion(int ropeEditSuggestionId, int expectedRopeId, byte[] expectedVersion, Action<RopeDto> prepareForWrite)
         {
-            using (var db = _dbContextFactory.CreateDbContext())
-            {
-                var ropeEditSuggestion = db.RopeEditSuggestions.FirstOrDefault(r => r.RopeEditSuggestionId == ropeEditSuggestionId);
-                if (ropeEditSuggestion != null)
-                {
-                    var rope = db.Ropes.FirstOrDefault(r => r.RopeId == ropeEditSuggestion.RopeId);
-                    if (rope != null)
-                    {
-                        //Update rope with rES.
-                        UpdateRope(rope, ropeEditSuggestion);
+            ArgumentNullException.ThrowIfNull(prepareForWrite);
+            using var db = _dbContextFactory.CreateDbContext();
+            // Hold read locks until commit: concurrent approvals must not consume
+            // the same suggestion or overwrite a rope loaded before another approval.
+            using var transaction = db.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+            var suggestion = db.RopeEditSuggestions.SingleOrDefault(r => r.RopeEditSuggestionId == ropeEditSuggestionId)
+                ?? throw new InvalidOperationException("The edit suggestion no longer exists. Refresh the list.");
+            if (suggestion.RopeId != expectedRopeId)
+                throw new InvalidOperationException("The edit suggestion does not belong to the selected rope.");
+            var rope = GetAllRopesQueryable(db).SingleOrDefault(r => r.RopeId == suggestion.RopeId)
+                ?? throw new RopeNotFoundException(suggestion.RopeId);
+            CheckVersion(db, rope, expectedVersion);
 
-                        //Delete ropeEditSuggestion
-                        db.Remove(ropeEditSuggestion);
-
-                        //Delete all other rES for this parameter??
-
-                        db.SaveChanges();
-                    }
-                }
-            }
+            var submission = GetSubmission(db, suggestion);
+            foreach (var change in submission) UpdateRope(rope, change);
+            // An approved brand edit changes the FK before EF relationship fixup.
+            rope.Brand = db.Brands.Single(b => b.BrandId == rope.BrandId);
+            var candidate = ToDto(rope);
+            prepareForWrite(candidate);
+            UpdateRope(rope, candidate);
+            db.Entry(rope).Property(r => r.Name).IsModified = true;
+            db.RopeEditSuggestions.RemoveRange(submission);
+            SaveChanges(db);
+            transaction.Commit();
         }
 
         public void DeleteRopeEditSuggestion(int ropeEditSuggestionId)
         {
-            using (var db = _dbContextFactory.CreateDbContext())
-            {
-                var ropeEditSuggestion = db.RopeEditSuggestions.FirstOrDefault(r => r.RopeEditSuggestionId == ropeEditSuggestionId);
-                if (ropeEditSuggestion != null)
-                {
-                    db.Remove(ropeEditSuggestion);
-                }
+            using var db = _dbContextFactory.CreateDbContext();
+            using var transaction = db.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+            var suggestion = db.RopeEditSuggestions.SingleOrDefault(r => r.RopeEditSuggestionId == ropeEditSuggestionId)
+                ?? throw new InvalidOperationException("The submission no longer exists. Refresh the list.");
+            db.RopeEditSuggestions.RemoveRange(GetSubmission(db, suggestion));
+            SaveChanges(db);
+            transaction.Commit();
+        }
 
-                db.SaveChanges();
-            }
+        private static List<RopeEditSuggestion> GetSubmission(DataContext db, RopeEditSuggestion suggestion)
+        {
+            // Legacy suggestions have no submission id and remain standalone.
+            return suggestion.SubmissionId.HasValue
+                ? db.RopeEditSuggestions.Where(s => s.RopeId == suggestion.RopeId && s.SubmissionId == suggestion.SubmissionId)
+                    .OrderBy(s => s.RopeEditSuggestionId).ToList()
+                : new List<RopeEditSuggestion> { suggestion };
         }
 
         public bool IsRopeNameUnique(int ropeId, string name)
         {
             using (var db = _dbContextFactory.CreateDbContext())
             {
-                bool duplicate = db.Ropes.Where(r => r.RopeId != ropeId).Any(r => r.Name == name);
+                var normalized = name.Trim();
+                bool duplicate = db.Ropes.Where(r => r.RopeId != ropeId)
+                    .Any(r => EF.Property<string>(r, "NormalizedName") == normalized);
                 var unique = !duplicate;
                 return unique;
             }
@@ -437,6 +469,23 @@ namespace RopeParison.Data.Services
         //-------------------------------
         // Private
         //-------------------------------
+        private static void CheckVersion(DataContext db, Rope rope, byte[] expectedVersion)
+        {
+            if (expectedVersion == null || expectedVersion.Length != 8 || !rope.RowVersion.SequenceEqual(expectedVersion))
+                throw new RopeConflictException();
+            db.Entry(rope).Property(r => r.RowVersion).OriginalValue = expectedVersion.ToArray();
+        }
+
+        private static void SaveChanges(DataContext db)
+        {
+            try { db.SaveChanges(); }
+            catch (DbUpdateConcurrencyException) { throw new RopeConflictException(); }
+            catch (DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sql
+                && (sql.Number == 2601 || sql.Number == 2627)
+                && sql.Message.Contains("UX_Ropes_NormalizedName", StringComparison.Ordinal))
+            { throw new DuplicateRopeNameException(); }
+        }
+
         private IQueryable<Rope> GetAllRopesQueryable(DataContext db)
         {
             IQueryable<Rope> ropes = db.Ropes.Include(r => r.Brand).Include(r => r.RopeCalculatedParameterSet);
@@ -536,15 +585,9 @@ namespace RopeParison.Data.Services
 
         private void UpdateRopeBrand(Rope rope, int brandId)
         {
-            using (var db = _dbContextFactory.CreateDbContext())
-            {
-                if (rope.Brand?.BrandId == null || rope.Brand.BrandId != brandId)
-                {
-                    var brand = db.Brands.Where(b => b.BrandId == brandId).First();
-                    //rope.Brand = brand;
-                    rope.BrandId = brand.BrandId;
-                }
-            }
+            // The database FK enforces existence; do not open another context
+            // inside a command's transaction just to copy its foreign key.
+            rope.BrandId = brandId;
         }
 
         private void UpdateRopeEditSuggestion(RopeEditSuggestion rES, RopeEditSuggestionDto rESDto)
@@ -584,6 +627,8 @@ namespace RopeParison.Data.Services
             var dto = new RopeDto();
 
             dto.RopeId = rope.RopeId;
+            dto.RowVersion = rope.RowVersion.ToArray();
+            dto.Verified = rope.Verified;
             dto.Name = rope.Name;
             dto.Brand = _brandDataService.ToDto(rope.Brand);
             dto.Category = rope.Category.ToDto();

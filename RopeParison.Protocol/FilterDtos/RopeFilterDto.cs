@@ -8,6 +8,7 @@ namespace RopeParison.Protocol
 {
     public class RopeFilterDto
     {
+        public bool IncludeUnverified { get; set; }
         public string? Name { get; set; }
         public string? BrandName { get; set; }
         public string? CategoryName { get; set; }

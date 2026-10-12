@@ -1,4 +1,4 @@
-﻿@page "/addRope"
+@page "/addRope"
 @page "/editRope/{editInt:int?}"
 @page "/editRope/{editInt:int?}/{ropeId:int?}"
 @page "/verifyRope/{verifyInt:int?}"
@@ -20,6 +20,10 @@
 
 
 <div id="wrapper" class="maincontent">
+    @if (!string.IsNullOrEmpty(recordError))
+    {
+        <div role="alert" class="alert alert-warning">@recordError</div>
+    }
     
     @if (delete)
     {
@@ -86,6 +90,38 @@
         <hr>
     }
 
+    @if (approveEdit && rope.RopeId > 0)
+    {
+        <p>Review all changes in each submission. Approving applies them together; rejecting removes the whole submission.</p>
+        @foreach (var submission in rope.RopeEditSuggestions.GroupBy(s => s.SubmissionId?.ToString() ?? $"legacy-{s.RopeEditSuggestionId}").OrderBy(g => g.Min(s => s.RopeEditSuggestionId)))
+        {
+            var first = submission.OrderBy(s => s.RopeEditSuggestionId).First();
+            <section class="card mb-3" @key="submission.Key">
+                <div class="card-body">
+                    <h4>Submission #@first.RopeEditSuggestionId</h4>
+                    @if (first.SubmissionId == null)
+                    {
+                        <p>Existing single-field suggestion</p>
+                    }
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead><tr><th scope="col">Property</th><th scope="col">Current</th><th scope="col">Proposed</th></tr></thead>
+                            <tbody>
+                                @foreach (var change in submission.OrderBy(s => s.RopeProperty))
+                                {
+                                    <tr><th scope="row">@ChangeLabel(change)</th><td>@ChangeValue(change, true)</td><td>@ChangeValue(change, false)</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-primary mr-2" @onclick="() => ApproveEditSuggestion(first.RopeEditSuggestionId)">Approve submission</button>
+                    <button type="button" class="btn btn-outline-danger" @onclick="() => DeleteEditSuggestion(first.RopeEditSuggestionId)">Reject submission</button>
+                </div>
+            </section>
+        }
+        <h4>Current rope details</h4>
+    }
+
     <EditForm EditContext="@editContext" OnSubmit="FormSubmit">
         <FluentValidationValidator /> <!--TValidator="RopeDtoValidator"-->
         <ValidationSummary />
@@ -104,22 +140,19 @@
         @if (edit)
         {
             <div class="form-group">
-                <label for="category" class="rope-add-label"></label>
-                <SfDropDownList @bind-Value="ropeEdit.Category" class="form-control" id="category"
+                <label for="categoryEdit" class="rope-add-label">Proposed category</label>
+                <SfDropDownList @bind-Value="ropeEdit.Category" class="form-control" id="categoryEdit"
                                 Width="250px"
                                 DataSource="categorys"
                                 Placeholder="Category"
-                                Enabled="edit && ropeEdit?.RopeId > 0 && false"> <!-- For now not allowed to edit rope category. -->
+                                Enabled="edit && ropeEdit?.RopeId > 0">
                     <DropDownListFieldSettings Text="DisplayName"></DropDownListFieldSettings>
                 </SfDropDownList>
                 <ValidationMessage For="@(() => ropeEdit.Category)"></ValidationMessage>
             </div>
-            <div class="form-group">
-                <label for="" class="rope-add-label"></label>
-                <span>Category editing is not yet supported.</span>
-            </div>
+
         }
-        @if (edit || approveEdit)
+        @if (edit)
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.Category))
             {
@@ -154,7 +187,7 @@
                 <ValidationMessage For="@(() => ropeEdit.Name)"></ValidationMessage>
             </div>
         }
-        @if (edit || approveEdit)
+        @if (edit)
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.Name))
             {
@@ -193,7 +226,7 @@
                 <ValidationMessage For="@(() => ropeEdit.Brand)"></ValidationMessage>
             </div>
         }
-        @if (edit || approveEdit)
+        @if (edit)
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.Brand))
             {
@@ -235,7 +268,7 @@
                 
             </div>
         }
-        @if (edit || approveEdit)
+        @if (edit)
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.Diameter))
             {
@@ -276,7 +309,7 @@
                 <ValidationMessage For="@(() => ropeEdit.MassPerUnitLength)"></ValidationMessage>
             </div>
         }
-        @if (edit || approveEdit)
+        @if (edit)
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.MassPerUnitLength))
             {
@@ -317,7 +350,7 @@
                 <ValidationMessage For="@(() => ropeEdit.SheathPercentage)"></ValidationMessage>
             </div>
         }
-        @if (edit || approveEdit)
+        @if (edit)
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.SheathPercentage))
             {
@@ -365,7 +398,7 @@
                 <ValidationMessage For="@(() => ropeEdit.SheathSlippage)"></ValidationMessage>
             </div>
         }
-        @if (edit || approveEdit)
+        @if (edit)
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.SheathSlippage))
             {
@@ -417,7 +450,7 @@
                 <ValidationMessage For="@(() => ropeEdit.ImpactForce55kgOneStrand)"></ValidationMessage>
             </div>
         }
-        @if (!Hide_ImpactForce55kgOneStrand() && (edit || approveEdit))
+        @if (!Hide_ImpactForce55kgOneStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.ImpactForce55kgOneStrand))
             {
@@ -458,7 +491,7 @@
                 <ValidationMessage For="@(() => ropeEdit.ImpactForce80kgOneStrand)"></ValidationMessage>
             </div>
         }
-        @if (!Hide_ImpactForce80kgOneStrand() && (edit || approveEdit))
+        @if (!Hide_ImpactForce80kgOneStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.ImpactForce80kgOneStrand))
             {
@@ -499,7 +532,7 @@
                 <ValidationMessage For="@(() => ropeEdit.ImpactForce80kgTwoStrand)"></ValidationMessage>
             </div>
         }
-        @if (!Hide_ImpactForce80kgTwoStrand() && (edit || approveEdit))
+        @if (!Hide_ImpactForce80kgTwoStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.ImpactForce80kgTwoStrand))
             {
@@ -544,7 +577,7 @@
                 <ValidationMessage For="@(() => ropeEdit.StaticElongation80kgOneStrand)"></ValidationMessage>
             </div>
         }
-        @if (!Hide_StaticElongation80kgOneStrand() && (edit || approveEdit))
+        @if (!Hide_StaticElongation80kgOneStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.StaticElongation80kgOneStrand))
             {
@@ -585,7 +618,7 @@
                 <ValidationMessage For="@(() => ropeEdit.StaticElongation80kgTwoStrand)"></ValidationMessage>
             </div>
         }
-        @if (!Hide_StaticElongation80kgTwoStrand() && (edit || approveEdit))
+        @if (!Hide_StaticElongation80kgTwoStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.StaticElongation80kgTwoStrand))
             {
@@ -633,7 +666,7 @@
                 <ValidationMessage For="@(() => ropeEdit.DynamicElongation55kgOneStrand)"></ValidationMessage>
             </div>
         }
-        @if (Show_DynamicElongation55kgOneStrand() && (edit || approveEdit))
+        @if (Show_DynamicElongation55kgOneStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DynamicElongation55kgOneStrand))
             {
@@ -677,7 +710,7 @@
                 <ValidationMessage For="@(() => ropeEdit.DynamicElongation80kgOneStrand)"></ValidationMessage>
             </div>
         }
-        @if (Show_DynamicElongation80kgOneStrand() && (edit || approveEdit))
+        @if (Show_DynamicElongation80kgOneStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DynamicElongation80kgOneStrand))
             {
@@ -721,7 +754,7 @@
                 <ValidationMessage For="@(() => ropeEdit.DynamicElongation80kgTwoStrand)"></ValidationMessage>
             </div>
         }
-        @if (Show_DynamicElongation80kgTwoStrand() && (edit || approveEdit))
+        @if (Show_DynamicElongation80kgTwoStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DynamicElongation80kgTwoStrand))
             {
@@ -768,7 +801,7 @@
                 <ValidationMessage For="@(() => ropeEdit.DropsBeforeBreak55kgOneStrand)"></ValidationMessage>
             </div>
         }
-        @if (!Hide_DropsBeforeBreak55kgOneStrand() && (edit || approveEdit))
+        @if (!Hide_DropsBeforeBreak55kgOneStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DropsBeforeBreak55kgOneStrand))
             {
@@ -811,7 +844,7 @@
                 <ValidationMessage For="@(() => ropeEdit.DropsBeforeBreak80kgOneStrand)"></ValidationMessage>
             </div>
         }
-        @if (!Hide_DropsBeforeBreak80kgOneStrand() && (edit || approveEdit))
+        @if (!Hide_DropsBeforeBreak80kgOneStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DropsBeforeBreak80kgOneStrand))
             {
@@ -854,7 +887,7 @@
                 <ValidationMessage For="@(() => ropeEdit.DropsBeforeBreak80kgTwoStrand)"></ValidationMessage>
             </div>
         }
-        @if (!Hide_DropsBeforeBreak80kgTwoStrand() && (edit || approveEdit))
+        @if (!Hide_DropsBeforeBreak80kgTwoStrand() && (edit))
         {
             @if (rope.RopeEditSuggestions.Any(x => x.RopeProperty == RopeProperty.DropsBeforeBreak80kgTwoStrand))
             {
@@ -1020,8 +1053,6 @@
     private ICategoryService categoryService { get; set; }
     [Inject]
     private IBrandService brandService { get; set; }
-    [Inject]
-    private IPasswordService passwordService { get; set; }
 
     protected override void OnInitialized()
     {
@@ -1035,6 +1066,7 @@
 
     private void OnInit()
     {
+        recordError = null;
         //All modes must be set to false on navigation.
         //Otherwise page switching within the component (e.g. Add to Verify), can mean two modes are true at once. 
         add = false;
@@ -1130,10 +1162,14 @@
     }
     private void GetRopeAndRopeEdit()
     {
+        recordError = null;
+        try
+        {
         if (edit)
         {
             rope = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected);
-            ropeEdit = ropeService.GetRopeById_IncEditSuggestions(ropeId_Selected); //need deep clone of rope, duplicate fetch easier.
+            // One snapshot for both copies, including the same concurrency token.
+            ropeEdit = System.Text.Json.JsonSerializer.Deserialize<RopeDto>(System.Text.Json.JsonSerializer.Serialize(rope))!;
         }
         else
         {
@@ -1147,7 +1183,15 @@
             }
             ropeEdit = new RopeDto();
         }
+        }
+        catch (RopeNotFoundException ex)
+        {
+            recordError = ex.Message;
+            ropeId_Selected = 0;
+            ClearRopes();
+        }
     }
+    private string? recordError;
     private void RenewEditContext()
     {
         if (edit)
@@ -1204,67 +1248,58 @@
     }
     private void VerifyRope()
     {
-        if (passwordService.CheckPassword_Verify(password))
+        if (rope != null)
         {
-            if (rope != null)
-            {
-                ropeService.VerifyRope(rope.RopeId);
-                ShowToast(TOAST_TITLE_VERIFY, TOAST_CONTENT_VERIFY, TOAST_CSS_SUCCESS);
-                ropeId_Selected = 0; //Clear dropdown.
-                ClearRopes();
-                ropes = ropeService.GetRopes_Verified(false);
-            }
-        }
-        else
-        {
-            ShowToast_IncorrectPassword();
+            ropeService.VerifyRope(rope.RopeId, rope.RowVersion, password);
+            ShowToast(TOAST_TITLE_VERIFY, TOAST_CONTENT_VERIFY, TOAST_CSS_SUCCESS);
+            ropeId_Selected = 0;
+            ClearRopes();
+            ropes = ropeService.GetRopes_Verified(false);
         }
     }
     private void DeleteRope()
     {
-        if (passwordService.CheckPassword_Delete(password))
+        if (rope != null)
         {
-            if (rope != null)
-            {
-                ropeService.RemoveRope(rope.RopeId);
-                ShowToast(TOAST_TITLE_DELETE, TOAST_CONTENT_DELETE, TOAST_CSS_SUCCESS);
-                ropeId_Selected = 0; //Clear dropdown.
-                ClearRopes();
-                ropes = ropeService.GetRopes_All();
-            }
-        }
-        else
-        {
-            ShowToast_IncorrectPassword();
+            ropeService.RemoveRope(rope.RopeId, rope.RowVersion, password);
+            ShowToast(TOAST_TITLE_DELETE, TOAST_CONTENT_DELETE, TOAST_CSS_SUCCESS);
+            ropeId_Selected = 0;
+            ClearRopes();
+            ropes = ropeService.GetRopes_All();
         }
     }
-    private void ApproveEditSuggestion(int ropeEditSuggestionId)
+    private string ChangeLabel(RopeEditSuggestionDto change) =>
+        ropeService.GetRopePropertyInformationList().FirstOrDefault(p => p.LogicalName == change.RopeProperty.ToString())?.NameUnit
+        ?? change.RopeProperty.ToString();
+
+    private string ChangeValue(RopeEditSuggestionDto change, bool current)
     {
-        if (passwordService.CheckPassword_Edit(password))
-        {
-            ropeService.ApproveRopeEditSuggestion(ropeEditSuggestionId, rope.RopeId);
-            ShowToast(TOAST_TITLE_APPROVEEDIT, TOAST_CONTENT_APPROVEEDIT, TOAST_CSS_SUCCESS);
-            RefreshRope_WithEditSuggestions();
-            ropes = ropeService.GetRopes_WithEditSuggestions();
-        }
-        else
-        {
-            ShowToast_IncorrectPassword();
-        }
+        if (change.RopeProperty == RopeProperty.Brand)
+            return (current ? rope.Brand?.Name : change.Brand?.Name) ?? "Not specified";
+        if (change.RopeProperty == RopeProperty.Category)
+            return (current ? rope.Category?.DisplayName : change.Category?.DisplayName) ?? "Not specified";
+        object source = current ? rope : change;
+        var value = source.GetType().GetProperty(change.RopeProperty.ToString())?.GetValue(source);
+        return value == null ? "Not specified" : Convert.ToString(value, System.Globalization.CultureInfo.CurrentCulture) ?? "Not specified";
     }
-    private void DeleteEditSuggestion(int ropeEditSuggestionId)
+
+    private async Task ApproveEditSuggestion(int ropeEditSuggestionId)
     {
-        if (passwordService.CheckPassword_Edit(password))
+        await RunWrite(() =>
         {
-            ropeService.DeleteRopeEditSuggestion(ropeEditSuggestionId);
-            ShowToast(TOAST_TITLE_APPROVEEDITDELETE, TOAST_CONTENT_APPROVEEDITDELETE, TOAST_CSS_SUCCESS);
+            ropeService.ApproveRopeEditSuggestion(ropeEditSuggestionId, rope.RopeId, rope.RowVersion, password);
             RefreshRope_WithEditSuggestions();
             ropes = ropeService.GetRopes_WithEditSuggestions();
-        }
-        else
+        }, TOAST_TITLE_APPROVEEDIT, TOAST_CONTENT_APPROVEEDIT);
+    }
+    private async Task DeleteEditSuggestion(int ropeEditSuggestionId)
+    {
+        await RunWrite(() =>
         {
-            ShowToast_IncorrectPassword();
-        }
+            ropeService.DeleteRopeEditSuggestion(ropeEditSuggestionId, password);
+            RefreshRope_WithEditSuggestions();
+            ropes = ropeService.GetRopes_WithEditSuggestions();
+        }, TOAST_TITLE_APPROVEEDITDELETE, TOAST_CONTENT_APPROVEEDITDELETE);
     }
 
     private async Task ShowToast(string title, string content, string css)
@@ -1275,14 +1310,10 @@
 
         await Task.Delay(100); //Have to incldue this so toastObj picks up the new values of toastTitle, toastContent, toastCss.
 
-        await Task.Run(() => toastObj.ShowAsync());
-    }
-    private void ShowToast_IncorrectPassword()
-    {
-        ShowToast(TOAST_TITLE_PASSWORDINCORRECT, TOAST_CONTENT_PASSWORDINCORRECT, TOAST_CSS_DANGER);
+        await toastObj.ShowAsync();
     }
 
-    private void FormSubmit()
+    private async Task FormSubmit()
     {
         if (edit && ropeEdit?.RopeId <= 0)
         {
@@ -1302,7 +1333,7 @@
 
             if (formValid)
             {
-                FormValidSubmit();
+                await RunWrite(FormValidSubmit);
             }
             else
             {
@@ -1332,6 +1363,32 @@
         else
         {
 
+        }
+    }
+    private async Task RunWrite(System.Action write, string? successTitle = null, string? successContent = null)
+    {
+        try
+        {
+            write();
+            if (successTitle != null)
+                await ShowToast(successTitle, successContent ?? "", TOAST_CSS_SUCCESS);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            await ShowToast(TOAST_TITLE_PASSWORDINCORRECT, TOAST_CONTENT_PASSWORDINCORRECT, TOAST_CSS_DANGER);
+        }
+        catch (FluentValidation.ValidationException ex)
+        {
+            await ShowToast("Changes not saved", string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)), TOAST_CSS_WARNING);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await ShowToast("Changes not saved", ex.Message, TOAST_CSS_WARNING);
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Rope write failed");
+            await ShowToast("Changes not saved", "The operation failed. Refresh the page and try again.", TOAST_CSS_DANGER);
         }
     }
     private void FormInvalidSubmit() //EditContext editContext

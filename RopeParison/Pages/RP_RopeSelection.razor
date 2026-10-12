@@ -1,4 +1,4 @@
-﻿@using RopeParison.Logic.Services;
+@using RopeParison.Logic.Services;
 @using RopeParison.Protocol;
 @using System.Linq
 
@@ -10,14 +10,14 @@
 @if (!inc_OptionA)
 {
     <div class="sidebar-content">
+        <p>Select ropes to display. An empty selection shows no ropes.</p>
         <div class="row sidebar-row-multiselect">
-            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_RopeListSelectedId" TItem="RopeDto" DataSource="@inc_RopeListChooseFrom" Placeholder="Ropes">
+            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_RopeListSelectedId" @bind-Value:after="ProcessRopeInclusion" TItem="RopeDto" DataSource="@inc_RopeListChooseFrom" Placeholder="Ropes">
                 <MultiSelectFieldSettings Value="RopeId" Text="Name"></MultiSelectFieldSettings>
-                <MultiSelectEvents TValue="List<int>" TItem="RopeDto" ValueChange="@ProcessRopeInclusion"></MultiSelectEvents>
             </SfMultiSelect>
         </div>
         <div class="row sidebar-row-checkbox">
-            <SfCheckBox @bind-Checked="@inc_IncludeUnverified" @onchange="inc_IncludeUnverifiedChanged">Include Unverified Ropes</SfCheckBox>
+            <SfCheckBox @bind-Checked="@inc_IncludeUnverified" @bind-Checked:after="inc_IncludeUnverifiedChanged">Include Unverified Ropes</SfCheckBox>
         </div>
     </div>
 }
@@ -27,17 +27,16 @@ else
 
         <div class="row sidebar-row-buttongroup">
             <SfButtonGroup Mode="Syncfusion.Blazor.SplitButtons.SelectionMode.Multiple" CssClass="e-small e-flat e-round-corner">
-                <ButtonGroupButton CssClass="@(inc_SelectedSingle ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedSingle">Single</ButtonGroupButton>
-                <ButtonGroupButton CssClass="@(inc_SelectedHalf ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalf">Half</ButtonGroupButton>
-                <ButtonGroupButton CssClass="@(inc_SelectedTwin ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedTwin">Twin</ButtonGroupButton>
-                <ButtonGroupButton CssClass="@(inc_SelectedHalfTwin ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalfTwin">HalfTwin</ButtonGroupButton>
-                <ButtonGroupButton CssClass="@(inc_SelectedTriple ? "e-primary" : "")" @onchange="@ProcessRopeInclusion" @bind-Selected="@inc_SelectedTriple">Triple</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedSingle ? "e-primary" : "")" @bind-Selected:after="ProcessRopeInclusion" @bind-Selected="@inc_SelectedSingle">Single</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedHalf ? "e-primary" : "")" @bind-Selected:after="ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalf">Half</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedTwin ? "e-primary" : "")" @bind-Selected:after="ProcessRopeInclusion" @bind-Selected="@inc_SelectedTwin">Twin</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedHalfTwin ? "e-primary" : "")" @bind-Selected:after="ProcessRopeInclusion" @bind-Selected="@inc_SelectedHalfTwin">HalfTwin</ButtonGroupButton>
+                <ButtonGroupButton CssClass="@(inc_SelectedTriple ? "e-primary" : "")" @bind-Selected:after="ProcessRopeInclusion" @bind-Selected="@inc_SelectedTriple">Triple</ButtonGroupButton>
             </SfButtonGroup>
         </div>
         <div class="row sidebar-row-multiselect">
-            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_BrandListSelectedId" TItem="BrandDto" DataSource="@inc_BrandListChooseFrom" Placeholder="Brands">
+            <SfMultiSelect TValue="List<int>" @bind-Value="@inc_BrandListSelectedId" @bind-Value:after="ProcessRopeInclusion" TItem="BrandDto" DataSource="@inc_BrandListChooseFrom" Placeholder="Brands">
                 <MultiSelectFieldSettings Value="BrandId" Text="Name"></MultiSelectFieldSettings>
-                <MultiSelectEvents TValue="List<int>" TItem="BrandDto" ValueChange="@ProcessRopeInclusion"></MultiSelectEvents>
             </SfMultiSelect>
         </div>
         <div class="row sidebar-row-range-slider front2">
@@ -61,7 +60,7 @@ else
         <div class="row sidebar-row-range-slider front-4">
             <span>
                 <label class="sidebar-subheader sidebar-label">Sheath Percentage</label>
-                <SfCheckBox ID="ToggleSheathPercentageFilter" @bind-Checked="@inc_IncRangeSheathPercentage" @onchange="ProcessRopeInclusion"></SfCheckBox>
+                <SfCheckBox ID="ToggleSheathPercentageFilter" @bind-Checked="@inc_IncRangeSheathPercentage" @bind-Checked:after="ProcessRopeInclusion"></SfCheckBox>
                 <SfTooltip Target="#ToggleSheathPercentageFilter" Content="Toggle Sheath Percentage filter on/off. Note that some ropes do not specify sheath percentage and they will be excluded from results when the filter is on." OpensOn="Hover" OpenDelay="500" Position="Syncfusion.Blazor.Popups.Position.TopCenter" CssClass="front-5"></SfTooltip>
                 <!--Tooltip does not appear to be showing. Raise bug with syncfusion-->
             </span>
@@ -73,7 +72,7 @@ else
             </SfSlider>
         </div>
         <div class="row sidebar-row-checkbox front-5">
-            <SfCheckBox @bind-Checked="@inc_IncludeUnverified" @onchange="ProcessRopeInclusion">Include Unverified Ropes</SfCheckBox>
+            <SfCheckBox @bind-Checked="@inc_IncludeUnverified" @bind-Checked:after="inc_IncludeUnverifiedChanged">Include Unverified Ropes</SfCheckBox>
         </div>
         <div class="row sidebar-row-range-slider front-5">
             <!--<hr>-->
@@ -123,12 +122,12 @@ else
     //**********************************************************************************************************************************************************************************************
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         inc_BrandListChooseFrom = brandService.GetAllBrands();
         GetRopeListChooseFrom();  
 
-        ProcessRopeInclusion();
+        await ProcessRopeInclusion();
     }
 
     private void GetRopeListChooseFrom()
@@ -137,15 +136,17 @@ else
             inc_RopeListChooseFrom = ropeService.GetRopes_All();
         else
             inc_RopeListChooseFrom = ropeService.GetRopes_Verified(true);
+        var availableIds = inc_RopeListChooseFrom.Select(r => r.RopeId).ToHashSet();
+        inc_RopeListSelectedId = (inc_RopeListSelectedId ?? new List<int>()).Where(availableIds.Contains).ToList();
     }
 
-    private void inc_IncludeUnverifiedChanged()
+    private async Task inc_IncludeUnverifiedChanged()
     {
         GetRopeListChooseFrom();
-        ProcessRopeInclusion();
+        await ProcessRopeInclusion();
     }
 
-    private async void ProcessRopeInclusion()
+    private async Task ProcessRopeInclusion()
     {
         RopeFilterADto filter = new RopeFilterADto();
         filter.IncludeUnverified = inc_IncludeUnverified;
@@ -166,7 +167,7 @@ else
         }
         else
         {
-            filter.RopeIds = inc_RopeListSelectedId;
+            filter.RopeIds = inc_RopeListSelectedId ?? new List<int>();
         }
 
         ropes = ropeService.GetRopes_FilteredA(filter);
@@ -190,16 +191,11 @@ else
 
         return categoryList;
     }
-    private void ToggleRopeSelectionMode()
+    private async Task ToggleRopeSelectionMode()
     {
-        if (inc_OptionA)
-        {
-            inc_OptionA = false;
-        }
-        else
-        {
-            inc_OptionA = true;
-        }
+        inc_OptionA = !inc_OptionA;
+        GetRopeListChooseFrom();
+        await ProcessRopeInclusion();
     }
 }
 

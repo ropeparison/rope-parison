@@ -91,7 +91,7 @@ namespace RopeParison.Data.Services
                 dto.SheathThickness = ropeCalculatedParameterSet.SheathThickness;
                 dto.CoreArea = ropeCalculatedParameterSet.CoreArea;
                 dto.CoreDiameter = ropeCalculatedParameterSet.CoreDiameter;
-                dto.CoreDiameter = ropeCalculatedParameterSet.CoreDiameter;
+                dto.SheathThickness = ropeCalculatedParameterSet.SheathThickness;
                 dto.Density = ropeCalculatedParameterSet.Density;
 
                 dto.RopeID = ropeCalculatedParameterSet.RopeId;

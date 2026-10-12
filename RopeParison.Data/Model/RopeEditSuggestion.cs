@@ -8,6 +8,7 @@ namespace RopeParison.Data.Model
     public class RopeEditSuggestion
     {
         public int RopeEditSuggestionId { get; set; }
+        public Guid? SubmissionId { get; set; }
 
         public int RopeId { get; set; }
 

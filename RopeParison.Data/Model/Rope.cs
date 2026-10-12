@@ -8,6 +8,7 @@ namespace RopeParison.Data.Model
     public class Rope
     {
         public int RopeId { get; set; }
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
         public string? Name { get; set; }
         public int BrandId { get; set; }
         public virtual Brand Brand { get; set; }

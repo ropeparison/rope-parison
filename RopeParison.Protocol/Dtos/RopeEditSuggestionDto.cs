@@ -5,6 +5,7 @@ namespace RopeParison.Protocol
     public class RopeEditSuggestionDto
     {
         public int RopeEditSuggestionId { get; set; }
+        public Guid? SubmissionId { get; set; }
 
         public RopeProperty RopeProperty { get; set; }
 

@@ -94,6 +94,7 @@ namespace RopeParison.Data.Services
             if (model != null)
             {
                 dto.RopeEditSuggestionId = model.RopeEditSuggestionId;
+                dto.SubmissionId = model.SubmissionId;
 
                 dto.RopeProperty = model.RopeProperty;
 

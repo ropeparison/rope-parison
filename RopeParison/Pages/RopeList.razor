@@ -6,6 +6,12 @@
 
 <h3>Rope List</h3>
 
+<label><input type="checkbox" @bind="filter.IncludeUnverified" @bind:after="ApplyFilter" /> Include Unverified Ropes</label>
+<div class="mb-2">
+    <button type="button" class="btn btn-primary" @onclick="ApplyFilter">Apply filters</button>
+    <button type="button" class="btn btn-secondary" @onclick="ResetFilter">Reset filters</button>
+</div>
+
 @if (ropes != null)
 {
     <div class="dropdown">
@@ -62,7 +68,13 @@
                     <input type="text" class="form-control" @bind="@filter.BrandName" />
                 </th>
                 <th hidden="@ColumnHidden("Category")">
-                    <input type="text" class="form-control" @bind="@filter.CategoryName" />
+                    <select class="form-control" aria-label="Category filter" @bind="filter.CategoryName">
+                        <option value="">All categories</option>
+                        @foreach (var category in Enum.GetValues<Category>())
+                        {
+                            <option value="@category.ToString()">@category</option>
+                        }
+                    </select>
                 </th>
                 <th hidden="@ColumnHidden("Diameter")">
                     <input type="number" class="form-control" @bind="@filter.DiameterMin" placeholder="Min" />

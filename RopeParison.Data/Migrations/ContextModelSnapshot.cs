@@ -17,7 +17,7 @@ namespace RopeParison.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.8")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -86,7 +86,21 @@ namespace RopeParison.Migrations
                         .HasColumnType("float");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("NormalizedName")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasComputedColumnSql("LTRIM(RTRIM([Name])) COLLATE Latin1_General_100_CI_AS", true);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<double?>("SheathPercentage")
                         .HasColumnType("float");
@@ -107,7 +121,14 @@ namespace RopeParison.Migrations
 
                     b.HasIndex("BrandId");
 
-                    b.ToTable("Ropes");
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Ropes_NormalizedName");
+
+                    b.ToTable("Ropes", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Ropes_Name_NotBlank", "LEN(LTRIM(RTRIM([Name]))) > 0");
+                        });
                 });
 
             modelBuilder.Entity("RopeParison.Data.Model.RopeCalculatedParameterSet", b =>
@@ -218,6 +239,9 @@ namespace RopeParison.Migrations
                     b.Property<double?>("StaticElongation80kgTwoStrand")
                         .HasColumnType("float");
 
+                    b.Property<Guid?>("SubmissionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<double>("UpVoteCount")
                         .HasColumnType("float");
 
@@ -225,7 +249,7 @@ namespace RopeParison.Migrations
 
                     b.HasIndex("BrandId");
 
-                    b.HasIndex("RopeId");
+                    b.HasIndex("RopeId", "SubmissionId");
 
                     b.ToTable("RopeEditSuggestions");
                 });

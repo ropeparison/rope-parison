@@ -45,7 +45,7 @@ namespace RopeParison.Security.Services
 
         public static bool CheckMatch(string? proposedPassword, string? password)
         {
-            if (proposedPassword == null || password == null)
+            if (string.IsNullOrWhiteSpace(proposedPassword) || string.IsNullOrWhiteSpace(password))
             {
                 return false; 
             }

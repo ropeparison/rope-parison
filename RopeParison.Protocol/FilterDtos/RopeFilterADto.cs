@@ -8,9 +8,10 @@ namespace RopeParison.Protocol
 {
     public class RopeFilterADto
     {
-        public List<int> RopeIds { get; set; } = new List<int>();
+        // Null means no restriction; an explicitly empty selection matches nothing.
+        public List<int>? RopeIds { get; set; }
         public List<int> BrandIds { get; set; } = new List<int>();
-        public List<Category> Categorys { get; set; } = new List<Category>();
+        public List<Category>? Categorys { get; set; }
 
         public double? DiameterMin { get; set; }
         public double? DiameterMax { get; set; }
