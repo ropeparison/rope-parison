@@ -1,0 +1,44 @@
+name: Infrastructure checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - major-update
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infrastructure-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate infrastructure
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Read pinned Terraform version
+        id: terraform-version
+        shell: pwsh
+        run: |
+          $version = (Get-Content ./infra/.terraform-version -Raw).Trim()
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Expected one stable Terraform version in infra/.terraform-version.' }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ steps.terraform-version.outputs.version }}
+          terraform_wrapper: false
+
+      - name: Check formatting, configurations and helper regressions
+        shell: pwsh
+        run: ./infra/Test-Infrastructure.ps1

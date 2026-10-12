@@ -56,6 +56,18 @@ The input metadata includes the current Entra administrator and two client IP ra
 
 Inventory scripts exclude app-setting values, connection-string values, keys and publishing profiles; Terraform's provider can still record secret-bearing settings in private state and plans.
 
+## Infrastructure CI and local validation
+
+`infrastructure-checks.yml` runs one credential-free job on every PR, pushes to `main`/`major-update`, and manual dispatch. It uses the exact version in `.terraform-version`, checks formatting, initializes and validates both configurations with disabled backends and readonly provider locks, then runs the offline helper/deployment regressions. Its token has only `contents: read`; it has no Azure login, production inputs/state or plan/apply path. The workflow starts running on GitHub when this branch is pushed.
+
+From the repository root, run the same checks with:
+
+```powershell
+./infra/Test-Infrastructure.ps1
+```
+
+Supply `-TerraformPath` if Terraform is not on PATH. The script uses fresh temporary Terraform metadata and preserves an existing production initialization. Public provider downloads may be needed; private SQL inputs and Azure credentials are not needed. See [stage verification and limits](../reviews/INFRASTRUCTURE_CI.md).
+
 ## Verification and deployment gate
 
 Run the offline helper/deployment regressions with PowerShell 7:
@@ -80,8 +92,8 @@ The follow-up review and verified resolutions are recorded in [Terraform adoptio
 
 ## Next work
 
-1. Add infrastructure CI for format/validation and trusted plans, followed by GitHub-to-Azure workload identity federation and a reviewed production apply gate. No CI identity or extra access grant has been created yet.
-2. Plan the production .NET 10 runtime/deployment change separately, coordinating database migrations and application configuration.
+1. Configure GitHub-to-Azure workload federation, protected reviewed SQL inputs, trusted plans and a reviewed production apply gate. Credential-free CI checks are implemented; no CI identity or extra access grant has been created yet.
+2. Prepare hosting, schema migrations, application configuration and rollback for the coordinated .NET 10 major release.
 3. Improve secret management and drift coverage, and rehearse state/database recovery with an agreed scope.
 
-Angular work follows application fixes and infrastructure adoption. New paid hosting, capacity changes and additional applications are separate changes.
+Each completed stage is verified and committed locally on `major-update`. All agreed updates form one coordinated production release; stage commits are development checkpoints. Angular work follows the application fixes and infrastructure preparation. New paid hosting, capacity changes and additional applications need their own reviewed plans.
